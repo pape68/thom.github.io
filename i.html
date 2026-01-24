@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stop Fake News – Progetto 2L</title>
+
+  <style>
+    :root{
+      --bg:#050814;
+      --panel:#0b142a;
+      --panel2:#091024;
+      --text:#eaf1ff;
+      --muted:#aab7d3;
+      --line:rgba(255,255,255,.10);
+      --accent:#22c55e;
+      --accent2:#38bdf8;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --shadow: 0 18px 45px rgba(0,0,0,.35);
+      --radius:20px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 420px at 12% 0%, rgba(34,197,94,.14), transparent 55%),
+        radial-gradient(900px 420px at 88% 0%, rgba(56,189,248,.12), transparent 55%),
+        radial-gradient(900px 420px at 50% 110%, rgba(245,158,11,.08), transparent 55%),
+        var(--bg);
+    }
+    a{color:#9ae6b4; text-decoration:none}
+    a:hover{text-decoration:underline}
+
+    /* Layout */
+    .wrap{max-width:1200px; margin:0 auto; padding:22px}
+    .grid{display:grid; grid-template-columns: 2fr 1fr; gap:16px; align-items:start;}
+    @media (max-width:980px){ .grid{grid-template-columns:1fr} }
+
+    /* Header / Nav */
+    header{
+      position:sticky; top:0; z-index:50;
+      background:rgba(5,8,20,.72);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+    }
+    .top{
+      display:flex; justify-content:space-between; align-items:flex-start;
+      gap:12px; flex-wrap:wrap;
+    }
+    h1{margin:0; font-size:1.8rem; letter-spacing:.2px}
+    .sub{margin:6px 0 0; color:var(--muted)}
+    .navWrap{
+      margin-top:14px;
+      display:flex; gap:10px; flex-wrap:wrap;
+      position:relative;
+      padding-bottom:12px;
+    }
+    .tab{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-size:.92rem;
+      transition:.12s ease;
+      user-select:none;
+    }
+    .tab:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.18)}
+    .tab.active{border-color:rgba(34,197,94,.65); background:rgba(34,197,94,.14)}
+    .indicator{
+      position:absolute; left:0; bottom:3px;
+      height:3px; border-radius:999px;
+      background:linear-gradient(90deg, var(--accent), var(--accent2));
+      width:120px;
+      transform:translateX(0);
+      transition: transform .25s ease, width .25s ease;
+      opacity:.9; pointer-events:none;
+    }
+
+    /* Cards */
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow: var(--shadow);
+    }
+    .hero{
+      padding:22px;
+      background:
+        radial-gradient(900px 240px at 0% 0%, rgba(34,197,94,.12), transparent 45%),
+        radial-gradient(900px 240px at 100% 0%, rgba(56,189,248,.10), transparent 45%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.01));
+    }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:.78rem;
+    }
+    .title{margin:12px 0 8px; font-size:1.45rem}
+    .muted{margin:0; color:var(--muted); line-height:1.55}
+    hr{border:0; border-top:1px solid var(--line); margin:14px 0}
+    .list{margin:0; padding-left:18px; color:var(--muted)}
+    .list li{margin:7px 0; line-height:1.45}
+    .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+    .chip{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.02);
+      color:var(--muted);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:.85rem;
+    }
+    .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+    .btn{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:10px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      cursor:pointer;
+      transition:.12s ease;
+    }
+    .btn:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.18)}
+    .btn.primary{border-color:rgba(34,197,94,.7); background:rgba(34,197,94,.14)}
+    .btn.info{border-color:rgba(56,189,248,.55); background:rgba(56,189,248,.10)}
+    .dot{width:10px; height:10px; border-radius:50%; background:var(--accent)}
+    .btn.info .dot{background:var(--accent2)}
+    .callout{
+      border:1px solid rgba(245,158,11,.35);
+      background:rgba(245,158,11,.08);
+      border-radius:16px;
+      padding:12px;
+      color:var(--muted);
+    }
+
+    /* Pages + reveal animation */
+    section.page{display:none}
+    section.page.active{display:block}
+    .reveal{
+      opacity:0;
+      transform: translateY(10px);
+      transition: opacity .35s ease, transform .35s ease;
+    }
+    .reveal.show{
+      opacity:1;
+      transform: translateY(0);
+    }
+
+    /* Gallery */
+    .toolbar{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .input, .select{
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      outline:none;
+      min-width:220px;
+    }
+    .select{min-width:180px}
+    .gallery{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+    }
+    @media (max-width:980px){ .gallery{grid-template-columns: repeat(2, 1fr);} }
+    @media (max-width:560px){ .gallery{grid-template-columns: 1fr;} }
+
+    .gcard{
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.16);
+      border-radius:16px;
+      overflow:hidden;
+      cursor:pointer;
+      transition:.12s ease;
+    }
+    .gcard:hover{transform:translateY(-2px); border-color:rgba(255,255,255,.18)}
+    .gimg{
+      height:160px;
+      background:#0a0f1f;
+      display:block;
+      width:100%;
+      object-fit:cover;
+    }
+    .gbody{padding:12px}
+    .gtitle{margin:0 0 6px; font-size:1rem}
+    .gmeta{margin:0; color:var(--muted); font-size:.9rem; line-height:1.35}
+    .gtags{margin-top:10px; display:flex; flex-wrap:wrap; gap:6px}
+    .tag{
+      font-size:.78rem;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      color:var(--muted);
+      background:rgba(255,255,255,.02);
+    }
+
+    /* Modal lightbox */
+    .modal{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:200;
+    }
+    .modal.show{display:flex}
+    .modalCard{
+      max-width:980px;
+      width:100%;
+      border-radius:22px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modalTop{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      background:rgba(0,0,0,.18);
+    }
+    .xbtn{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      border-radius:12px;
+      padding:8px 10px;
+      cursor:pointer;
+    }
+    .modalContent{
+      display:grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap:0;
+    }
+    @media (max-width:900px){ .modalContent{grid-template-columns:1fr;} }
+
+    .modalImg{
+      width:100%;
+      height:420px;
+      object-fit:cover;
+      background:#0a0f1f;
+    }
+    .modalSide{
+      padding:14px;
+      border-left:1px solid var(--line);
+    }
+    @media (max-width:900px){ .modalSide{border-left:0; border-top:1px solid var(--line);} }
+
+    /* Scenario slider */
+    .steps{
+      display:flex; gap:10px; flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .stepBtn{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      cursor:pointer;
+    }
+    .stepBtn.active{
+      border-color:rgba(34,197,94,.65);
+      background:rgba(34,197,94,.14);
+    }
+
+    /* Floating top */
+    .floatTop{
+      position:fixed;
+      right:18px; bottom:18px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(5,8,20,.7);
+      backdrop-filter: blur(10px);
+      color:var(--text);
+      cursor:pointer;
+      box-shadow: var(--shadow);
+      display:none;
+      z-index:150;
+    }
+    .floatTop.show{display:block}
+
+    footer{padding:18px; text-align:center; color:var(--muted)}
+
+    /* Quiz flash feedback */
+    .quizOk{
+      border-color: rgba(34,197,94,.55) !important;
+      background: rgba(34,197,94,.08) !important;
+    }
+    .quizBad{
+      border-color: rgba(239,68,68,.45) !important;
+      background: rgba(239,68,68,.08) !important;
+    }
+    .teamRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-top:14px;
+}
+
+.personChip{
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+
+  padding:12px 16px;
+  border-radius:999px;
+
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.22);
+
+  box-shadow: 0 12px 26px rgba(0,0,0,.25);
+
+  transition: transform .12s ease, border-color .12s ease;
+}
+
+.personChip:hover{
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,.22);
+}
+
+.avatar{
+  width:94px;     /* aumenta qui */
+  height:94px;    /* aumenta qui */
+  border-radius:999px;
+  object-fit:cover;
+
+  border:1px solid rgba(255,255,255,.14);
+}
+
+.personName{
+  font-size:1.55rem;   /* aumenta qui */
+  font-weight:900;
+  letter-spacing:.6px;
+  text-transform:uppercase;
+  color:var(--text);
+}
+.personText{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+}
+
+.personQuote{
+  margin-top:4px;
+  font-size:.92rem;
+  color:var(--muted);
+  letter-spacing:.2px;
+}
+
+
+
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <h1>Stop Fake News</h1>
+          <p class="sub">Progetto 2L</p>
+        </div>
+      </div>
+
+      <nav class="navWrap" id="navWrap">
+        <button class="tab active" data-target="home">Home</button>
+        <button class="tab" data-target="cosa">Cosa sono</button>
+        <button class="tab" data-target="perche">Perché si diffondono</button>
+        <button class="tab" data-target="difendersi">Come difendersi</button>
+        <button class="tab" data-target="galleria">Galleria</button>
+        <button class="tab" data-target="scenario">Scenario</button>
+        <button class="tab" data-target="ai">AI</button>
+        <button class="tab" data-target="quiz">Quiz</button>
+        <button class="tab" data-target="conclusione">Conclusione</button>
+
+        <div class="indicator" id="indicator"></div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- HOME -->
+    <section class="page active" id="home">
+      <div class="grid">
+        <div class="card hero reveal">
+          <span class="badge">Panoramica</span>
+          <h2 class="title">Fake news: riconoscerle e limitare i danni</h2>
+
+          <div style="margin-top:12px; padding:14px; border-radius:18px; border:1px solid var(--line); background:rgba(0,0,0,.22)">
+            <div style="font-size:1.15rem; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:var(--text)">
+              COMPONENTI DEL GRUPPO 🦁
+            </div>
+            <div class="teamRow" aria-label="Componenti del gruppo 🦁">
+  <!-- Opzione con immagine -->
+  
+    <span class="personChip">
+  <img class="avatar" src="img/thomas-perego.enc" alt="THOMAS PEREGO">
+  <span class="personText">
+    <span class="personName">THOMAS PEREGO</span>
+    <span class="personQuote">“Controlla sempre la fonte.”</span>
+  </span>
+  </span>
+</span>
+
+  <span class="personChip">
+    <img class="avatar" src="img/walid-zernack.jpg" alt="WALID ZERNACK">
+    <span class="personText">
+    <span class="personName">WALID ZERNACK</span>
+    <span class="personQuote">“Il migliore a calcio.”</span>
+  </span>
+  </span>
+
+  <span class="personChip">
+    <img class="avatar" src="img/thomas-nisoli.enc" alt="THOMAS NISOLI">
+    <span class="personText">
+    <span class="personName">THOMAS NISOLI</span>
+    <span class="personQuote">“Italiano 100%.”</span>
+  </span>
+  </span>
+
+  <span class="personChip">
+    <img class="avatar" src="img/rayan-filali.enc" alt="RAYAN FILALI">
+    <span class="personText">
+    <span class="personName">RAYAN FILALI</span>
+    <span class="personQuote">“Non infamate.”</span>
+  </span>
+  </span>
+</div>
+
+          </div>
+
+          <p class="muted" style="margin-top:12px">
+            Le fake news sono contenuti ingannevoli o falsi che possono circolare online molto rapidamente.
+            Qui trovi un percorso semplice: definizione, motivi di diffusione, comportamenti utili e una galleria di esempi visivi.
+          </p>
+
+          <div class="btnrow">
+            <button class="btn primary" data-jump="difendersi"><span class="dot"></span>Vai a “Come difendersi”</button>
+            <button class="btn info" data-jump="galleria"><span class="dot"></span>Apri la galleria</button>
+          </div>
+
+          <div class="chips">
+            <span class="chip">Titoli sensazionalistici</span>
+            <span class="chip">Contesto mancante</span>
+            <span class="chip">Immagini fuori contesto</span>
+            <span class="chip">Testi emotivi</span>
+            <span class="chip">Invito a condividere</span>
+          </div>
+
+          <hr />
+          <div class="callout">
+            <strong style="color:var(--text)">Regola veloce:</strong>
+            se una notizia ti fa reagire di impulso (paura/rabbia/entusiasmo), fermati e ragiona.
+          </div>
+        </div>
+
+        <aside class="card reveal">
+          <span class="badge">Checklist</span>
+          <h3 style="margin:10px 0 6px">Prima di condividere</h3>
+          <ul class="list">
+            <li>Chi pubblica? È chiaro e rintracciabile?</li>
+            <li>La data è presente? Il contenuto è attuale?</li>
+            <li>Ci sono dettagli concreti o solo frasi vaghe?</li>
+            <li>Il contenuto spinge a “inoltrare subito”?</li>
+            <li>Immagini/video: potrebbero essere vecchi o modificati?</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <!-- COSA -->
+    <section class="page" id="cosa">
+      <div class="grid">
+        <div class="card reveal">
+          <span class="badge">Cosa sono</span>
+          <h2 class="title">Definizione semplice</h2>
+          <p class="muted">
+            Una fake news è un contenuto falso o manipolato che sembra una notizia vera.
+            Spesso usa un linguaggio emotivo e immagini “forti” per convincere velocemente.
+          </p>
+          <hr />
+          <h3 style="margin:0 0 8px">Tipi comuni</h3>
+          <ul class="list">
+            <li><strong>Inventata:</strong> storia creata da zero.</li>
+            <li><strong>Distorta:</strong> fatto reale raccontato in modo parziale.</li>
+            <li><strong>Fuori contesto:</strong> foto/video veri usati per un altro evento.</li>
+            <li><strong>Clickbait:</strong> titolo acchiappa-clic.</li>
+          </ul>
+        </div>
+
+        <aside class="card reveal">
+          <span class="badge">Perché funzionano</span>
+          <p class="muted" style="margin:10px 0 0">
+            Puntano su emozioni e velocità: più reagisci di impulso, più aumentano le condivisioni.
+          </p>
+          <hr />
+          <div class="chips">
+            <span class="chip">Paura</span><span class="chip">Rabbia</span><span class="chip">Shock</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PERCHE -->
+    <section class="page" id="perche">
+      <div class="grid">
+        <div class="card reveal">
+          <span class="badge">Perché si diffondono</span>
+          <h2 class="title">Motivi principali</h2>
+          <ul class="list">
+            <li><strong>Emozioni:</strong> aumentano le condivisioni.</li>
+            <li><strong>Velocità:</strong> si inoltra senza riflettere.</li>
+            <li><strong>Guadagno:</strong> clic e pubblicità.</li>
+            <li><strong>Influenza:</strong> orientare opinioni o scelte.</li>
+          </ul>
+          <hr />
+          <p class="muted">
+            Online i contenuti estremi hanno più visibilità: per questo serve un comportamento più “lento”.
+          </p>
+        </div>
+
+        <aside class="card reveal">
+          <span class="badge">Falso mito</span>
+          <h3 style="margin:10px 0 6px">“Se lo dicono in tanti, è vero”</h3>
+          <p class="muted">
+            Le condivisioni misurano quanto un contenuto è “coinvolgente”, non quanto è corretto.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- DIFENDERSI -->
+    <section class="page" id="difendersi">
+      <div class="grid">
+        <div class="card reveal">
+          <span class="badge">Come difendersi</span>
+          <h2 class="title">Comportamenti utili</h2>
+          <ul class="list">
+            <li><strong>Leggi oltre il titolo</strong> (spesso è la parte più ingannevole).</li>
+            <li><strong>Cerca dettagli concreti</strong> (date, luoghi, numeri spiegati).</li>
+            <li><strong>Valuta il sito</strong> (contatti, “Chi siamo”, qualità del testo).</li>
+            <li><strong>Confronta più fonti</strong> (se è importante, deve comparire anche altrove).</li>
+            <li><strong>Occhio alle immagini</strong> (possono essere vecchie o modificate).</li>
+          </ul>
+          <hr />
+          <div class="callout">
+            <strong style="color:var(--text)">Regola pratica:</strong>
+            se non sei sicuro → non condividere.
+          </div>
+        </div>
+
+        <aside class="card reveal">
+          <span class="badge">Nota</span>
+          <p class="muted" style="margin:10px 0 0">
+            Anche un sito “bello” può essere poco affidabile: conta la trasparenza, non solo l’aspetto.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- GALLERIA -->
+    <section class="page" id="galleria">
+      <div class="grid">
+        <div class="card reveal">
+          <span class="badge">Galleria</span>
+          <h2 class="title">Esempi visivi (clicca per ingrandire)</h2>
+          <p class="muted">
+            Qui puoi inserire screenshot o immagini legate a fake news (titoli clickbait, foto fuori contesto, post virali).
+            Al momento sono immagini di esempio: sostituisci i link con le tue.
+          </p>
+
+          <div class="toolbar">
+            <input class="input" id="search" placeholder="Cerca (es. clickbait, foto, truffa)..." />
+            <select class="select" id="filter">
+              <option value="all">Tutte le categorie</option>
+              <option value="clickbait">Clickbait</option>
+              <option value="fuori-contesto">Fuori contesto</option>
+              <option value="truffa">Truffa</option>
+              <option value="manipolazione">Manipolazione</option>
+            </select>
+          </div>
+
+          <div class="gallery" id="gallery"></div>
+        </div>
+
+        <aside class="card reveal">
+          <span class="badge">Suggerimento</span>
+          <h3 style="margin:10px 0 6px">Come usare la galleria</h3>
+          <ul class="list">
+            <li>Carica 6–12 esempi reali (screenshot) e descrivili.</li>
+            <li>Indica il “segnale” (titolo, immagine, contesto, truffa).</li>
+            <li>Non inserire dati personali (nomi/volti) se non serve.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <!-- SCENARIO -->
+    <section class="page" id="scenario">
+      <div class="grid">
+        <div class="card reveal">
+          <span class="badge">Scenario interattivo</span>
+          <h2 class="title">Come nasce e si diffonde una fake news</h2>
+          <p class="muted">Clicca i passaggi per vedere cosa succede.</p>
+
+          <div class="steps" id="steps"></div>
+
+          <hr />
+          <div class="callout" id="stepBox"></div>
+        </div>
+
+        <aside class="card reveal">
+          <span class="badge">Idea</span>
+          <p class="muted" style="margin:10px 0 0">
+            Puoi riscrivere lo scenario con un caso scelto dalla classe (senza nomi reali).
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <!-- AI -->
+    <section class="page" id="ai">
+      <div class="grid">
+        <div class="card reveal">
+          <span class="badge">Gemini · Verifica</span>
+          <h2 class="title">Rilevatore di notizie false (con AI)</h2>
+
+          <div style="margin:12px 0 8px; padding:14px; border-radius:18px; border:1px solid var(--line); background:rgba(0,0,0,.22); text-align:center">
+            <div style="font-size:1.7rem; font-weight:900; letter-spacing:.6px; text-transform:uppercase">
+              WALID ZERNACK
+            </div>
+          </div>
+
+          <p class="muted">
+            Incolla titolo e testo. L’AI restituisce un esito (vero/falso/incerto), confidenza e cosa verificare.
+          </p>
+
+          <hr />
+
+          <div class="toolbar">
+            <input class="input" id="aiSource" placeholder="Fonte (sito / pagina / @account)..." />
+            <select class="select" id="aiTopic">
+              <option value="general">Argomento: generale</option>
+              <option value="health">Salute</option>
+              <option value="science">Scienza</option>
+              <option value="politics">Politica</option>
+              <option value="money">Soldi / bonus</option>
+            </select>
+          </div>
+
+          <div style="margin-top:12px">
+            <input class="input" id="aiTitle" placeholder="Titolo della notizia..." style="width:100%; min-width:unset" />
+          </div>
+
+          <div style="margin-top:10px">
+            <textarea class="input" id="aiText" rows="7" placeholder="Testo / post..." style="width:100%; min-width:unset; resize:vertical"></textarea>
+          </div>
+
+          <div class="btnrow">
+            <button class="btn primary" id="aiRun"><span class="dot"></span>Analizza con Gemini</button>
+            <button class="btn" id="aiClear">Pulisci</button>
+          </div>
+
+          <div id="aiOut" style="margin-top:14px"></div>
+        </div>
+
+        <aside class="card reveal">
+          <span class="badge">Suggerimenti</span>
+          <h3 style="margin:10px 0 6px">Buone pratiche</h3>
+          <ul class="list">
+            <li>Controlla data, autore e “Chi siamo”.</li>
+            <li>Confronta almeno 2 fonti affidabili.</li>
+            <li>Immagini: usa la ricerca inversa.</li>
+            <li>Se chiede credenziali/dati → probabile truffa.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <!-- QUIZ CLASSICO (senza cerchio) -->
+    <section class="page" id="quiz">
+      <div class="grid">
+        <div class="card reveal">
+          <span class="badge">Quiz</span>
+          <h2 class="title">Indovina: Vera o Falsa?</h2>
+          <p class="muted">
+            Leggi la notizia e scegli se secondo te è vera o falsa.
+            Alla fine vedrai punteggio e spiegazioni.
+          </p>
+
+          <hr />
+
+          <div class="callout" id="quizBox">
+            <!-- contenuto dinamico -->
+          </div>
+
+          <div class="btnrow" style="margin-top:12px">
+            <button class="btn primary" id="btnTrue"><span class="dot"></span>Vera</button>
+            <button class="btn info" id="btnFalse"><span class="dot"></span>Falsa</button>
+            <button class="btn" id="btnNext" style="display:none">Avanti</button>
+            <button class="btn" id="btnRestart" style="display:none">Ricomincia</button>
+          </div>
+
+          <div style="margin-top:14px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">
+            <span class="badge" id="quizProgress">Domanda 1/1</span>
+            <span class="badge" id="quizScore">Punteggio: 0</span>
+          </div>
+        </div>
+
+        <aside class="card reveal">
+          <span class="badge">Suggerimento</span>
+          <h3 style="margin:10px 0 6px">Trucchi per vincere</h3>
+          <ul class="list">
+            <li>Occhio a titoli troppo emotivi o “urgenti”.</li>
+            <li>Se mancano date, fonti, dettagli → sospetto.</li>
+            <li>Se chiede di condividere subito → spesso è fake.</li>
+            <li>Confronta sempre più fonti affidabili.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <!-- CONCLUSIONE -->
+    <section class="page" id="conclusione">
+      <div class="grid">
+        <div class="card reveal">
+          <span class="badge">Conclusione</span>
+          <h2 class="title">Messaggio finale</h2>
+          <p class="muted">
+            Ridurre le fake news non richiede essere “esperti”: basta rallentare, usare buon senso e non agire d’impulso.
+            Condividere meno e meglio aiuta tutti.
+          </p>
+          <hr />
+          <div class="chips">
+            <span class="chip">Fermati</span>
+            <span class="chip">Leggi</span>
+            <span class="chip">Cerca conferme</span>
+            <span class="chip">Condividi con responsabilità</span>
+          </div>
+        </div>
+
+        <aside class="card reveal">
+          <span class="badge">Credits</span>
+          <p class="muted" style="margin:10px 0 0">
+            Progetto 2L · Sito didattico – uso scolastico.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Lightbox Modal -->
+  <div class="modal" id="modal">
+    <div class="modalCard">
+      <div class="modalTop">
+        <div>
+          <strong id="mTitle">Titolo</strong><br/>
+          <small style="color:var(--muted)" id="mCat">Categoria</small>
+        </div>
+        <button class="xbtn" id="closeModal">Chiudi ✕</button>
+      </div>
+      <div class="modalContent">
+        <img class="modalImg" id="mImg" alt="Immagine" />
+        <div class="modalSide">
+          <p class="muted" id="mDesc" style="margin:0"></p>
+          <div class="gtags" id="mTags"></div>
+          <hr/>
+          <p class="muted" style="margin:0">
+            Suggerimento: qui puoi scrivere “perché è ingannevole” e cosa fare.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="floatTop" id="floatTop" title="Torna su">↑</button>
+
+  <footer>
+    <small>Classe 2L · Sito didattico – uso scolastico</small>
+  </footer>
+
+  <script>
+    // ---------- NAV / PAGES ----------
+    const tabs = [...document.querySelectorAll(".tab")];
+    const pages = [...document.querySelectorAll("section.page")];
+    const navWrap = document.getElementById("navWrap");
+    const indicator = document.getElementById("indicator");
+
+    function moveIndicator(tab){
+      const wrapRect = navWrap.getBoundingClientRect();
+      const r = tab.getBoundingClientRect();
+      const x = r.left - wrapRect.left;
+      indicator.style.width = r.width + "px";
+      indicator.style.transform = `translateX(${x}px)`;
+    }
+
+    function showPage(id){
+      pages.forEach(p => p.classList.toggle("active", p.id === id));
+      tabs.forEach(t => t.classList.toggle("active", t.dataset.target === id));
+      const active = tabs.find(t => t.dataset.target === id);
+      if (active) moveIndicator(active);
+      window.scrollTo({top:0, behavior:"smooth"});
+      setTimeout(checkReveal, 50);
+    }
+
+    tabs.forEach(t => t.addEventListener("click", () => showPage(t.dataset.target)));
+    document.querySelectorAll("[data-jump]").forEach(b =>
+      b.addEventListener("click", () => showPage(b.dataset.jump))
+    );
+
+    window.addEventListener("resize", () => {
+      const active = document.querySelector(".tab.active");
+      if (active) moveIndicator(active);
+    });
+
+    requestAnimationFrame(() => {
+      const active = document.querySelector(".tab.active");
+      if (active) moveIndicator(active);
+    });
+
+    // ---------- REVEAL ----------
+    const revealEls = [...document.querySelectorAll(".reveal")];
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add("show");
+      });
+    }, { threshold: 0.12 });
+    revealEls.forEach(el => io.observe(el));
+
+    function checkReveal(){
+      revealEls.forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.top < window.innerHeight * 0.9) el.classList.add("show");
+      });
+    }
+
+    // ---------- FLOAT TOP ----------
+    const floatTop = document.getElementById("floatTop");
+    floatTop.addEventListener("click", () => window.scrollTo({top:0, behavior:"smooth"}));
+    window.addEventListener("scroll", () => {
+      floatTop.classList.toggle("show", window.scrollY > 300);
+    });
+
+    // ---------- GALLERY ----------
+    const galleryEl = document.getElementById("gallery");
+    const searchEl = document.getElementById("search");
+    const filterEl = document.getElementById("filter");
+
+    const placeholder = (txt) =>
+      `https://picsum.photos/seed/${encodeURIComponent(txt)}/900/600`;
+
+    const items = [
+      {
+        id: 1,
+        title: "Titolo clickbait: “Incredibile! Nessuno te lo dice…”",
+        category: "clickbait",
+        src: placeholder("clickbait-1"),
+        desc: "Usa parole vaghe e sensazionalistiche per spingerti al click. Manca una fonte chiara.",
+        tags: ["titolo", "emozioni", "vago"]
+      },
+      {
+        id: 2,
+        title: "Foto fuori contesto",
+        category: "fuori-contesto",
+        src: placeholder("fuori-contesto-1"),
+        desc: "Immagine reale, ma riferita a un altro evento/anno. Controlla data e luogo.",
+        tags: ["immagine", "contesto", "data"]
+      },
+      {
+        id: 3,
+        title: "Truffa: “Bonus immediato – inserisci i dati”",
+        category: "truffa",
+        src: placeholder("truffa-1"),
+        desc: "Invito urgente + link sospetto. Verificare su siti ufficiali e non inserire credenziali.",
+        tags: ["urgenza", "link", "phishing"]
+      },
+      {
+        id: 4,
+        title: "Manipolazione: grafico senza fonte",
+        category: "manipolazione",
+        src: placeholder("manipolazione-1"),
+        desc: "Numeri presentati senza metodo o fonte. Cerca l’ente che pubblica i dati originali.",
+        tags: ["dati", "fonte", "grafico"]
+      },
+      {
+        id: 5,
+        title: "Clickbait + invito a condividere",
+        category: "clickbait",
+        src: placeholder("clickbait-2"),
+        desc: "Frasi tipo “Condividi prima che lo cancellino”. È un segnale tipico di contenuto ingannevole.",
+        tags: ["condividi", "pressione", "virale"]
+      },
+      {
+        id: 6,
+        title: "Fuori contesto: screenshot tagliato",
+        category: "fuori-contesto",
+        src: placeholder("fuori-contesto-2"),
+        desc: "Tagli/ritagli possono cambiare senso a una frase. Cerca il post completo o la fonte originale.",
+        tags: ["taglio", "contesto", "origine"]
+      }
+    ];
+
+    function norm(s){
+      return (s || "").toString().toLowerCase().trim();
+    }
+
+    function getFiltered(){
+      const q = norm(searchEl?.value);
+      const cat = filterEl?.value || "all";
+
+      return items.filter(it => {
+        const matchesCat = (cat === "all") || (it.category === cat);
+        const hay = norm(it.title) + " " + norm(it.desc) + " " + (it.tags || []).map(norm).join(" ");
+        const matchesQ = !q || hay.includes(q);
+        return matchesCat && matchesQ;
+      });
+    }
+
+    function renderGallery(){
+      if (!galleryEl) return;
+      const filtered = getFiltered();
+
+      if (!filtered.length){
+        galleryEl.innerHTML = `
+          <div class="card" style="grid-column:1/-1; background:rgba(0,0,0,.16); border-radius:16px; border:1px solid var(--line); padding:14px;">
+            <strong>Nessun risultato</strong>
+            <p class="muted" style="margin:8px 0 0;">Prova a cambiare filtro o ricerca.</p>
+          </div>
+        `;
+        return;
+      }
+
+      galleryEl.innerHTML = filtered.map(it => `
+        <article class="gcard" data-id="${it.id}" tabindex="0" role="button" aria-label="Apri ${it.title}">
+          <img class="gimg" src="${it.src || placeholder(it.title)}" alt="${it.title}">
+          <div class="gbody">
+            <h3 class="gtitle">${it.title}</h3>
+            <p class="gmeta">${it.desc || ""}</p>
+            <div class="gtags">
+              ${(it.tags || []).slice(0, 4).map(t => `<span class="tag">${t}</span>`).join("")}
+            </div>
+          </div>
+        </article>
+      `).join("");
+
+      galleryEl.querySelectorAll("img").forEach(img => {
+        img.addEventListener("error", () => {
+          img.src = placeholder(img.alt || "fallback");
+        }, { once: true });
+      });
+    }
+
+    searchEl?.addEventListener("input", renderGallery);
+    filterEl?.addEventListener("change", renderGallery);
+
+    // ---------- MODAL ----------
+    const modal = document.getElementById("modal");
+    const closeModalBtn = document.getElementById("closeModal");
+    const mTitle = document.getElementById("mTitle");
+    const mCat = document.getElementById("mCat");
+    const mImg = document.getElementById("mImg");
+    const mDesc = document.getElementById("mDesc");
+    const mTags = document.getElementById("mTags");
+    let lastFocus = null;
+
+    function catLabel(cat){
+      const map = {
+        "clickbait": "Clickbait",
+        "fuori-contesto": "Fuori contesto",
+        "truffa": "Truffa",
+        "manipolazione": "Manipolazione"
+      };
+      return map[cat] || "Altro";
+    }
+
+    function openModal(item){
+      if (!modal) return;
+      lastFocus = document.activeElement;
+
+      mTitle.textContent = item.title || "Dettaglio";
+      mCat.textContent = catLabel(item.category);
+      mImg.src = item.src || placeholder(item.title || "img");
+      mImg.alt = item.title || "Immagine";
+      mDesc.textContent = item.desc || "";
+      mTags.innerHTML = (item.tags || []).map(t => `<span class="tag">${t}</span>`).join("");
+
+      modal.classList.add("show");
+      document.body.style.overflow = "hidden";
+      closeModalBtn?.focus();
+    }
+
+    function closeModal(){
+      if (!modal) return;
+      modal.classList.remove("show");
+      document.body.style.overflow = "";
+      if (lastFocus && typeof lastFocus.focus === "function") lastFocus.focus();
+    }
+
+    closeModalBtn?.addEventListener("click", closeModal);
+    modal?.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal?.classList.contains("show")) closeModal();
+    });
+
+    galleryEl?.addEventListener("click", (e) => {
+      const card = e.target.closest(".gcard");
+      if (!card) return;
+      const id = Number(card.dataset.id);
+      const item = items.find(x => x.id === id);
+      if (item) openModal(item);
+    });
+
+    galleryEl?.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const card = e.target.closest(".gcard");
+      if (!card) return;
+      e.preventDefault();
+      const id = Number(card.dataset.id);
+      const item = items.find(x => x.id === id);
+      if (item) openModal(item);
+    });
+
+    // ---------- SCENARIO ----------
+    const stepsEl = document.getElementById("steps");
+    const stepBox = document.getElementById("stepBox");
+
+    const scenario = [
+      { t: "1) Creazione", d: "Qualcuno inventa o distorce un fatto. Spesso usa un titolo forte e poco verificabile.", tip: "Segnale: poche fonti, frasi vaghe, tono emotivo." },
+      { t: "2) Pubblicazione", d: "Il contenuto viene postato su un sito/pagina poco trasparente o in un gruppo.", tip: "Controlla: contatti, autore, data, qualità del testo." },
+      { t: "3) Amplificazione", d: "Viene rilanciato con “condividi subito” o con screenshot tagliati che eliminano il contesto.", tip: "Cerca il contenuto originale e confronta più fonti." },
+      { t: "4) Viralità", d: "L’algoritmo spinge ciò che genera reazioni. Commenti e rabbia aumentano la visibilità.", tip: "Rallenta: se ti provoca impulso, è un campanello d’allarme." },
+      { t: "5) Correzione", d: "Arrivano smentite, ma circolano meno. La falsa notizia resta nella memoria di molti.", tip: "Se hai condiviso, correggi: aggiorna/avvisa chi l’ha vista." }
+    ];
+
+    let stepIdx = 0;
+
+    function renderSteps(){
+      if (!stepsEl) return;
+      stepsEl.innerHTML = scenario.map((s, i) => `
+        <button class="stepBtn ${i === stepIdx ? "active" : ""}" data-i="${i}">
+          ${s.t}
+        </button>
+      `).join("");
+    }
+
+    function renderStepBox(){
+      if (!stepBox) return;
+      const s = scenario[stepIdx];
+      stepBox.innerHTML = `
+        <strong style="color:var(--text)">${s.t}</strong>
+        <p class="muted" style="margin:8px 0 10px">${s.d}</p>
+        <div class="chips" style="margin:0">
+          <span class="chip">Consiglio</span>
+          <span class="chip">${s.tip}</span>
+        </div>
+      `;
+    }
+
+    stepsEl?.addEventListener("click", (e) => {
+      const btn = e.target.closest(".stepBtn");
+      if (!btn) return;
+      stepIdx = Number(btn.dataset.i);
+      renderSteps();
+      renderStepBox();
+    });
+
+    // ---------- AI ----------
+    const aiSource = document.getElementById("aiSource");
+    const aiTopic  = document.getElementById("aiTopic");
+    const aiTitle  = document.getElementById("aiTitle");
+    const aiText   = document.getElementById("aiText");
+    const aiRun    = document.getElementById("aiRun");
+    const aiClear  = document.getElementById("aiClear");
+    const aiOut    = document.getElementById("aiOut");
+
+    function esc(s){
+      return (s || "").toString().replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[c]));
+    }
+
+    function pill(label){
+      const m = { vero:"var(--accent)", falso:"var(--danger)", incerto:"var(--warn)" };
+      const color = m[label] || "var(--warn)";
+      return `<span class="badge" style="border-color:${color}; background: color-mix(in srgb, ${color} 18%, transparent); color: var(--text);">
+        ${esc(label).toUpperCase()}
+      </span>`;
+    }
+
+    function bar(conf){
+      const c = Math.max(0, Math.min(100, Number(conf || 0)));
+      return `
+        <div style="margin:10px 0 12px">
+          <div style="display:flex; justify-content:space-between; gap:12px; align-items:center">
+            <strong>Confidenza</strong>
+            <span class="badge">${c}/100</span>
+          </div>
+          <div style="margin-top:10px; height:10px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.04); overflow:hidden">
+            <div style="height:100%; width:${c}%; background:linear-gradient(90deg, var(--accent), var(--warn), var(--danger));"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function list(title, arr){
+      if (!arr || !arr.length) return `
+        <div class="card" style="background:rgba(0,0,0,.12); border-radius:16px; border:1px solid var(--line); padding:12px; box-shadow:none">
+          <strong>${esc(title)}</strong>
+          <p class="muted" style="margin:8px 0 0">—</p>
+        </div>
+      `;
+      return `
+        <div class="card" style="background:rgba(0,0,0,.12); border-radius:16px; border:1px solid var(--line); padding:12px; box-shadow:none">
+          <strong>${esc(title)}</strong>
+          <ul class="list" style="margin-top:8px">${arr.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+        </div>
+      `;
+    }
+
+    aiRun?.addEventListener("click", async () => {
+      const payload = {
+        source: aiSource?.value?.trim() || "",
+        topic: aiTopic?.value || "general",
+        title: aiTitle?.value?.trim() || "",
+        text:  aiText?.value?.trim() || ""
+      };
+
+      if (!payload.title && !payload.text){
+        aiOut.innerHTML = `
+          <div class="callout">
+            <strong style="color:var(--text)">Inserisci almeno titolo o testo</strong>
+            <p class="muted" style="margin:8px 0 0">Poi premi “Analizza con Gemini”.</p>
+          </div>`;
+        return;
+      }
+
+      aiOut.innerHTML = `<div class="callout">Analisi in corso…</div>`;
+      aiRun.disabled = true;
+
+      try{
+        const r = await fetch("/api/analyze", {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(payload)
+        });
+
+        const data = await r.json();
+
+        if (!r.ok){
+          aiOut.innerHTML = `<div class="callout" style="border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.08); color: var(--text);">
+            Errore: ${esc(data.error || "richiesta non valida")}
+          </div>`;
+          return;
+        }
+
+        aiOut.innerHTML = `
+          <div class="card" style="background:rgba(0,0,0,.12); border-radius:16px; border:1px solid var(--line); padding:14px; box-shadow:none">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap">
+              <div style="display:flex; align-items:center; gap:10px">
+                ${pill(data.label)}
+                <strong>Esito</strong>
+              </div>
+              <span class="badge">Gemini</span>
+            </div>
+            ${bar(data.confidence)}
+            <hr/>
+            <strong>Riassunto</strong>
+            <p class="muted" style="margin:8px 0 0">${esc(data.summary || "")}</p>
+          </div>
+
+          <div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:12px">
+            ${list("Motivi", data.reasons)}
+            ${list("Red flags", data.red_flags)}
+          </div>
+
+          <div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:12px">
+            ${list("Cosa verificare", data.what_to_check)}
+            ${list("Query utili", data.suggested_queries)}
+          </div>
+        `;
+
+      } catch(e){
+        aiOut.innerHTML = `<div class="callout" style="border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.08); color: var(--text);">
+          Errore rete: ${esc(String(e))}
+        </div>`;
+      } finally {
+        aiRun.disabled = false;
+      }
+    });
+
+    aiClear?.addEventListener("click", () => {
+      if (aiSource) aiSource.value = "";
+      if (aiTitle) aiTitle.value = "";
+      if (aiText)  aiText.value = "";
+      if (aiTopic) aiTopic.value = "general";
+      if (aiOut)   aiOut.innerHTML = "";
+    });
+
+    // ---------- AUDIO QUIZ (MP3 personalizzati) ----------
+    // crea una cartella "audio" con:
+    // audio/win.mp3
+    // audio/lose.mp3
+    const sfx = {
+      win: new Audio("audio/win.mp3"),
+      lose: new Audio("audio/lose.mp3")
+    };
+    sfx.win.preload = "auto";
+    sfx.lose.preload = "auto";
+    sfx.win.volume = 0.7;
+    sfx.lose.volume = 0.7;
+
+    function playSfx(which){
+      const a = sfx[which];
+      if (!a) return;
+      a.pause();
+      a.currentTime = 0;
+      a.play().catch(() => {});
+    }
+
+    function flashQuiz(ok){
+      const box = document.getElementById("quizBox");
+      if (!box) return;
+      box.classList.remove("quizOk", "quizBad");
+      box.classList.add(ok ? "quizOk" : "quizBad");
+      setTimeout(() => box.classList.remove("quizOk", "quizBad"), 600);
+    }
+
+    // ---------- QUIZ CLASSICO ----------
+    const quizBox = document.getElementById("quizBox");
+    const quizProgress = document.getElementById("quizProgress");
+    const quizScore = document.getElementById("quizScore");
+
+    const btnTrue = document.getElementById("btnTrue");
+    const btnFalse = document.getElementById("btnFalse");
+    const btnNext = document.getElementById("btnNext");
+    const btnRestart = document.getElementById("btnRestart");
+
+    const quiz = [
+      {
+        title: "“Da domani WhatsApp diventa a pagamento: condividi per evitarlo”",
+        answer: false,
+        explain: "Catena tipica: urgenza + richiesta di inoltro. Manca una fonte ufficiale."
+      },
+      {
+        title: "“Una foto del 2020 viene usata per dire che è successa oggi”",
+        answer: false,
+        explain: "Fuori contesto: immagine vera, ma descrizione falsa."
+      },
+      {
+        title: "“Articolo con data, autore e link verificabile a un documento ufficiale”",
+        answer: true,
+        explain: "Segnale di affidabilità: permette controlli concreti (non garantisce il 100%)."
+      },
+      {
+        title: "“Bonus immediato: inserisci SPID e IBAN in un link ricevuto via DM”",
+        answer: false,
+        explain: "Probabile truffa/phishing: enti seri non chiedono dati sensibili così."
+      }
+    ];
+
+    let qIndex = 0;
+    let points = 0;
+    let locked = false;
+
+    function renderQuiz(){
+      const q = quiz[qIndex];
+      locked = false;
+
+      quizBox.innerHTML = `
+        <strong style="color:var(--text); font-size:1.05rem">Notizia:</strong>
+        <p class="muted" style="margin:10px 0 0; font-size:1.05rem">${q.title}</p>
+      `;
+
+      quizProgress.textContent = `Domanda ${qIndex + 1}/${quiz.length}`;
+      quizScore.textContent = `Punteggio: ${points}`;
+
+      btnTrue.style.display = "inline-flex";
+      btnFalse.style.display = "inline-flex";
+      btnNext.style.display = "none";
+      btnRestart.style.display = "none";
+    }
+
+    function showExplanation(isCorrect){
+      const q = quiz[qIndex];
+
+      quizBox.innerHTML = `
+        <strong style="color:var(--text); font-size:1.05rem">
+          ${isCorrect ? "Corretto" : "Sbagliato"}
+        </strong>
+        <p class="muted" style="margin:10px 0 0">${q.title}</p>
+        <hr/>
+        <strong style="color:var(--text)">Spiegazione</strong>
+        <p class="muted" style="margin:8px 0 0">${q.explain}</p>
+      `;
+
+      btnTrue.style.display = "none";
+      btnFalse.style.display = "none";
+
+      if (qIndex < quiz.length - 1){
+        btnNext.style.display = "inline-flex";
+      } else {
+        btnRestart.style.display = "inline-flex";
+        quizBox.innerHTML += `
+          <hr/>
+          <strong style="color:var(--text)">Risultato finale</strong>
+          <p class="muted" style="margin:8px 0 0">
+            Hai totalizzato <strong style="color:var(--text)">${points}</strong> su <strong style="color:var(--text)">${quiz.length}</strong>.
+          </p>
+        `;
+      }
+
+      quizScore.textContent = `Punteggio: ${points}`;
+    }
+
+    function answerQuiz(userChoice){
+      if (locked) return;
+      locked = true;
+
+      const q = quiz[qIndex];
+      const isCorrect = (userChoice === q.answer);
+
+      if (isCorrect){
+        points += 1;
+        playSfx("win");
+      } else {
+        playSfx("lose");
+      }
+
+      flashQuiz(isCorrect);
+      showExplanation(isCorrect);
+    }
+
+    btnTrue?.addEventListener("click", () => answerQuiz(true));
+    btnFalse?.addEventListener("click", () => answerQuiz(false));
+
+    btnNext?.addEventListener("click", () => {
+      qIndex += 1;
+      renderQuiz();
+    });
+
+    btnRestart?.addEventListener("click", () => {
+      qIndex = 0;
+      points = 0;
+      renderQuiz();
+    });
+
+    document.querySelectorAll("img.avatar").forEach(img => {
+  img.addEventListener("error", () => {
+    const name = (img.alt || "").trim();
+    const initials = name.split(/\s+/).slice(0,2).map(x => x[0]).join("").toUpperCase() || "??";
+
+    const fallback = document.createElement("div");
+    fallback.className = "avatarFallback";
+    fallback.textContent = initials;
+
+    img.replaceWith(fallback);
+  }, { once:true });
+});
+
+
+    // ---------- INIT ----------
+    renderGallery();
+    renderSteps();
+    renderStepBox();
+    checkReveal();
+    renderQuiz();
+  </script>
+</body>
+</html>
