@@ -1162,7 +1162,7 @@
       aiRun.disabled = true;
 
       try{
-        const r = await fetch("/api/analyze", {
+        const r = await fetch("https://equisetic-kennith-uncubically.ngrok-free.dev/api/analyze", {
           method: "POST",
           headers: {"Content-Type":"application/json"},
           body: JSON.stringify(payload)
