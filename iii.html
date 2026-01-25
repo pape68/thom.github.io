@@ -1,1 +1,748 @@
 
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Caduta Libera — Studio TV (3D)</title>
+  <style>
+    html,body{margin:0;height:100%;overflow:hidden;background:#05070c;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    canvas{display:block}
+
+    #hud{
+      position:fixed;top:12px;left:12px;z-index:10;
+      color:#e6eefc;font-size:14px;line-height:1.35;
+      padding:10px 12px;border-radius:14px;
+      background:rgba(10,16,26,.55);backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.10);
+      user-select:none;min-width:380px
+    }
+    #hud b{font-weight:900}
+    #hud .row{display:flex;gap:10px;flex-wrap:wrap;align-items:baseline}
+    #hud .tag{opacity:.85}
+
+    #hostBar{
+      position:fixed;left:50%;top:12px;transform:translateX(-50%);
+      z-index:15;
+      color:#e6eefc;font-size:14px;
+      background:rgba(10,16,26,.55);backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:999px;
+      padding:9px 14px;
+      max-width:min(980px,96vw);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      user-select:none;
+    }
+    #hostBar b{font-weight:900}
+
+    #panel{
+      position:fixed;left:50%;bottom:16px;transform:translateX(-50%);
+      z-index:20;width:min(1080px,96vw);
+      color:#e6eefc;
+      background:rgba(10,16,26,.78);backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;box-shadow:0 18px 60px rgba(0,0,0,.45);
+      padding:14px 14px 12px;
+    }
+    #q{font-size:18px;font-weight:950;margin:2px 4px 12px}
+    #answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn{
+      all:unset;cursor:pointer;
+      padding:12px 12px;border-radius:14px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      transition:transform .06s ease,background .15s ease;
+    }
+    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.09)}
+    .sub{opacity:.82;font-size:13px;margin-top:10px;padding:0 4px}
+
+    #overlay{
+      position:fixed;inset:0;z-index:30;display:none;
+      background:rgba(0,0,0,.40);backdrop-filter:blur(6px);
+      align-items:center;justify-content:center;color:#e6eefc;text-align:center;
+    }
+    #overlay .card{
+      padding:16px 18px;border-radius:16px;
+      background:rgba(10,16,26,.70);
+      border:1px solid rgba(255,255,255,.12);
+      max-width:720px
+    }
+
+    .logoImg{
+      width:20px;height:20px;border-radius:999px;object-fit:cover;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.06);
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <div class="row"><div><b>Caduta Libera</b> — Studio TV</div></div>
+
+    <div class="row">
+      <div class="tag">Conduttore:</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <!-- logo conduttore rimosso -->
+        <b id="hostName"></b>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="tag">Concorrente:</div>
+      <div><b id="playerName"></b></div>
+    </div>
+
+    <div class="row">
+      <div>Livello: <span id="lvl">1</span></div>
+      <div>Score: <span id="score">0</span></div>
+      <div>Streak: <span id="streak">0</span></div>
+    </div>
+
+    <div style="opacity:.85;margin-top:6px">Tasti: <b>A/B/C/D</b> o click • Restart: <b>Spazio</b></div>
+  </div>
+
+  <div id="hostBar"></div>
+
+  <div id="panel">
+    <div id="q"></div>
+    <div id="answers"></div>
+    <div class="sub" id="hint"></div>
+  </div>
+
+  <div id="overlay">
+    <div class="card" id="overlayCard"></div>
+  </div>
+
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+
+    // ---------------- DOM ----------------
+    const uiLvl = document.getElementById("lvl");
+    const uiScore = document.getElementById("score");
+    const uiStreak = document.getElementById("streak");
+
+    const uiHostName = document.getElementById("hostName");
+    const uiHostLogoImg = document.getElementById("hostLogoImg");
+
+    
+    if (uiHostLogoImg) uiHostLogoImg.style.display = "none";
+const uiPlayerName = document.getElementById("playerName");
+    const hostBar = document.getElementById("hostBar");
+
+    const qEl = document.getElementById("q");
+    const aEl = document.getElementById("answers");
+    const hintEl = document.getElementById("hint");
+
+    const overlay = document.getElementById("overlay");
+    const overlayCard = document.getElementById("overlayCard");
+
+    // ---------------- Nomi (tuoi) ----------------
+    const HOSTS = [
+      { name: "Thomas Perego", logoUrl: "" },
+      { name: "Rayan Filali",  logoUrl: "" },
+      { name: "Thomas Nisoli", logoUrl: "" },
+    ];
+
+    const CONTESTANTS = [
+      "Cristian Argento",
+      "Alberto Spadoni",
+      "Dialle Diop",
+      "Alex Gastoldi",
+      "Luciano Alexander",
+      "Nicolo Guercia"
+    ];
+
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
+    const pickDifferent = (a, prev) => {
+      if (a.length <= 1) return a[0];
+      let v = pick(a);
+      while (v === prev) v = pick(a);
+      return v;
+    };
+
+    let hostObj = pick(HOSTS);
+    let contestantName = pick(CONTESTANTS);
+
+    // ---------------- Banco domande ----------------
+    const BANK = [
+      { q:"Qual è l'unità SI della forza?", a:["Joule","Newton","Watt","Pascal"], correct:1, hint:"F = m·a", levelMin:1 },
+      { q:"In JavaScript, typeof null restituisce:", a:["\"null\"","\"object\"","\"undefined\"","\"number\""], correct:1, hint:"Bug storico", levelMin:1 },
+      { q:"Pitagora (triangolo rettangolo):", a:["a=b+c","a²=b²+c²","a²+b²=c²","ab=c"], correct:2, hint:"Cateti e ipotenusa", levelMin:1 },
+      { q:"Qual è il pianeta più vicino al Sole?", a:["Mercurio","Venere","Marte","Giove"], correct:0, hint:"Molto piccolo", levelMin:1 },
+      { q:"Densità:", a:["m/V","V/m","m·V","V²/m"], correct:0, hint:"massa fratto volume", levelMin:1 },
+
+      { q:"Quale tra questi è un numero primo?", a:["21","29","35","39"], correct:1, hint:"Divisibile solo per 1 e sé stesso", levelMin:2 },
+      { q:"HTTP significa:", a:["HyperText Transfer Protocol","High Text Transmission Process","Hyper Tool Transfer Program","Host Transfer Text Protocol"], correct:0, hint:"Protocollo web", levelMin:2 },
+      { q:"In chimica, pH=7 indica:", a:["Acido","Basico","Neutro","Sale"], correct:2, hint:"Acqua pura", levelMin:2 },
+
+      { q:"Una rete /24 in IPv4 ha quanti host utilizzabili?", a:["254","256","128","255"], correct:0, hint:"Totali 256, meno 2", levelMin:3 },
+      { q:"Derivata di x²:", a:["x","2x","x²","2"], correct:1, hint:"Regola di potenza", levelMin:3 },
+      { q:"In un gas ideale, PV=nRT: R è:", a:["Costante di Avogadro","Costante dei gas","Resistenza elettrica","Raggio atomico"], correct:1, hint:"8.314...", levelMin:3 },
+
+      { q:"Complessità O(n log n) tipica di:", a:["Bubble sort","Insertion sort","Merge sort","Linear search"], correct:2, hint:"Divide et impera", levelMin:4 },
+      { q:"Se log2(8)=?", a:["2","3","4","8"], correct:1, hint:"2^3=8", levelMin:4 },
+    ];
+
+    function pickQuestion(level){
+      const pool = BANK.filter(x => x.levelMin <= level);
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    // ---------------- Three.js setup ----------------
+    const renderer = new THREE.WebGLRenderer({ antialias:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const textureLoader = new THREE.TextureLoader();
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x04060a, 10, 160);
+
+    const camera = new THREE.PerspectiveCamera(58, innerWidth/innerHeight, 0.1, 350);
+    camera.position.set(0, 4.8, 13.2);
+
+    // Luci studio
+    scene.add(new THREE.AmbientLight(0x9fb7ff, 0.17));
+
+    const keySpot = new THREE.SpotLight(0xffffff, 2.35, 90, Math.PI/7, 0.35, 1.0);
+    keySpot.position.set(0, 17, 10);
+    keySpot.target.position.set(0, 1.6, 0);
+    scene.add(keySpot, keySpot.target);
+
+    const fill = new THREE.PointLight(0x7aa7ff, 1.25, 70);
+    fill.position.set(-12, 10, 10);
+    scene.add(fill);
+
+    const rim = new THREE.PointLight(0xff7aa2, 1.1, 85);
+    rim.position.set(12, 10, -10);
+    scene.add(rim);
+
+    const back = new THREE.PointLight(0x2aa7ff, 0.9, 90);
+    back.position.set(0, 8, -18);
+    scene.add(back);
+
+    // ---------------- Studio environment ----------------
+    const studio = new THREE.Group();
+    scene.add(studio);
+
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x0a1020, metalness:0.28, roughness:0.22 });
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(28, 120), floorMat);
+    floor.rotation.x = -Math.PI/2;
+    floor.position.y = 0;
+    studio.add(floor);
+
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x070b14, metalness:0.08, roughness:0.85 });
+    const wall = new THREE.Mesh(new THREE.CylinderGeometry(28, 28, 16, 84, 1, true), wallMat);
+    wall.position.y = 8;
+    wall.rotation.y = Math.PI/2;
+    studio.add(wall);
+
+    const ledBlue = new THREE.MeshStandardMaterial({
+      color: 0x0d1630, metalness:0.12, roughness:0.35,
+      emissive: new THREE.Color(0x2aa7ff), emissiveIntensity: 1.0
+    });
+    const ledPink = new THREE.MeshStandardMaterial({
+      color: 0x2a0f18, metalness:0.12, roughness:0.35,
+      emissive: new THREE.Color(0xff6b8a), emissiveIntensity: 0.85
+    });
+
+    const panels = [];
+    for (let i=0;i<12;i++){
+      const mat = (i%3===0)?ledPink:ledBlue;
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 2.2), mat);
+      const ang = -Math.PI/2 + (i-5.5)*0.165;
+      p.position.set(Math.cos(ang)*24.0, 7.1 + (i%4)*0.16, Math.sin(ang)*24.0);
+      p.lookAt(0, 7.1, 0);
+      studio.add(p);
+      panels.push(p);
+    }
+
+    const crowd = new THREE.Group();
+    studio.add(crowd);
+    const crowdMat = new THREE.MeshStandardMaterial({ color: 0x04060b, metalness:0.0, roughness:1.0 });
+    for (let i=0;i<260;i++){
+      const h = 0.75 + Math.random()*1.35;
+      const w = 0.22 + Math.random()*0.28;
+      const d = 0.22 + Math.random()*0.28;
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), crowdMat);
+      const a = Math.random()*Math.PI*2;
+      const r = 18 + Math.random()*8.5;
+      m.position.set(Math.cos(a)*r, h/2, Math.sin(a)*r);
+      m.rotation.y = Math.random()*Math.PI*2;
+      crowd.add(m);
+    }
+
+    const beamMat = new THREE.MeshBasicMaterial({ color: 0x2aa7ff, transparent:true, opacity:0.05 });
+    for (let i=0;i<6;i++){
+      const beam = new THREE.Mesh(new THREE.ConeGeometry(1.2, 14, 18, 1, true), beamMat);
+      beam.position.set(-10 + i*4, 10, -8 + (i%2)*6);
+      beam.rotation.x = Math.PI;
+      studio.add(beam);
+    }
+
+    // ---------------- Stage + botola ----------------
+    const stage = new THREE.Group();
+    scene.add(stage);
+
+    const stageMat = new THREE.MeshStandardMaterial({ color: 0x101a2a, metalness:0.24, roughness:0.34 });
+    const platform = new THREE.Mesh(new THREE.CylinderGeometry(5.8, 6.6, 0.62, 84), stageMat);
+    platform.position.y = 0.31;
+    stage.add(platform);
+
+    const insetMat = new THREE.MeshStandardMaterial({ color: 0x070b14, metalness:0.22, roughness:0.60 });
+    const inset = new THREE.Mesh(new THREE.CylinderGeometry(3.45, 3.45, 0.12, 60), insetMat);
+    inset.position.y = 0.65;
+    stage.add(inset);
+
+    const trapMat = new THREE.MeshStandardMaterial({
+      color: 0x5a1522, metalness:0.14, roughness:0.45,
+      emissive: new THREE.Color(0x22040a), emissiveIntensity: 0.55
+    });
+
+    const doorGeo = new THREE.BoxGeometry(3.25, 0.22, 3.25);
+    const leftDoor = new THREE.Mesh(doorGeo, trapMat);
+    const rightDoor = new THREE.Mesh(doorGeo, trapMat);
+
+    const leftPivot = new THREE.Group();
+    leftPivot.position.set(-0.10, 0.76, 0.0);
+    leftDoor.position.set(-1.62 - leftPivot.position.x, 0, 0);
+    leftPivot.add(leftDoor);
+
+    const rightPivot = new THREE.Group();
+    rightPivot.position.set(0.10, 0.76, 0.0);
+    rightDoor.position.set(1.62 - rightPivot.position.x, 0, 0);
+    rightPivot.add(rightDoor);
+
+    stage.add(leftPivot);
+    stage.add(rightPivot);
+
+    const trapGlow = new THREE.Mesh(
+      new THREE.TorusGeometry(2.62, 0.07, 14, 96),
+      new THREE.MeshBasicMaterial({ color: 0x2aa7ff, transparent:true, opacity:0.22 })
+    );
+    trapGlow.rotation.x = Math.PI/2;
+    trapGlow.position.y = 0.86;
+    stage.add(trapGlow);
+
+    // ---------------- Concorrente (umanoide) ----------------
+    const contestantMesh = new THREE.Group();
+    scene.add(contestantMesh);
+
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xffd2b0, metalness:0.02, roughness:0.65 });
+    const shirtMat = new THREE.MeshStandardMaterial({ color: 0x0f1a2b, metalness:0.12, roughness:0.45 });
+    const limbMat  = new THREE.MeshStandardMaterial({ color: 0x7ce0ff, metalness:0.18, roughness:0.28 });
+    const legMat   = new THREE.MeshStandardMaterial({ color: 0x0b1020, metalness:0.10, roughness:0.55 });
+
+    const cTorso = new THREE.Mesh(new THREE.CapsuleGeometry(0.30, 0.62, 10, 18), shirtMat);
+    cTorso.position.set(0, 1.40, 0);
+    contestantMesh.add(cTorso);
+
+    const cHead = new THREE.Mesh(new THREE.SphereGeometry(0.24, 24, 24), skinMat);
+    cHead.position.set(0, 2.00, 0.02);
+    contestantMesh.add(cHead);
+
+    const armGeo = new THREE.CapsuleGeometry(0.10, 0.42, 8, 16);
+    const legGeo = new THREE.CapsuleGeometry(0.11, 0.50, 8, 16);
+
+    const cLeftArm = new THREE.Mesh(armGeo, limbMat);
+    cLeftArm.position.set(-0.36, 1.58, 0);
+    cLeftArm.rotation.z = 0.35;
+    contestantMesh.add(cLeftArm);
+
+    const cRightArm = new THREE.Mesh(armGeo, limbMat);
+    cRightArm.position.set(0.36, 1.58, 0);
+    cRightArm.rotation.z = -0.35;
+    contestantMesh.add(cRightArm);
+
+    const cLeftLeg = new THREE.Mesh(legGeo, legMat);
+    cLeftLeg.position.set(-0.16, 0.78, 0);
+    contestantMesh.add(cLeftLeg);
+
+    const cRightLeg = new THREE.Mesh(legGeo, legMat);
+    cRightLeg.position.set(0.16, 0.78, 0);
+    contestantMesh.add(cRightLeg);
+
+    const aura = new THREE.Mesh(
+      new THREE.SphereGeometry(0.78, 18, 18),
+      new THREE.MeshBasicMaterial({ color: 0x2aa7ff, transparent:true, opacity:0.05 })
+    );
+    aura.position.set(0, 1.25, 0);
+    contestantMesh.add(aura);
+
+    // ---------------- Conduttore (umanoide + faccia) ----------------
+    const host = new THREE.Group();
+    scene.add(host);
+
+    host.position.set(4.25, 0.0, -1.85);
+    host.rotation.y = -0.35;
+
+    const suitMat = new THREE.MeshStandardMaterial({ color: 0x101724, metalness:0.18, roughness:0.40 });
+    const tieMat  = new THREE.MeshStandardMaterial({ color: 0xff6b8a, metalness:0.10, roughness:0.35, emissive: new THREE.Color(0x330611), emissiveIntensity: 0.45 });
+    const hairMat = new THREE.MeshStandardMaterial({ color: 0x1a140f, metalness:0.08, roughness:0.75 });
+    const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xeef3ff, metalness:0.02, roughness:0.85 });
+    const pupilMat = new THREE.MeshStandardMaterial({ color: 0x111418, metalness:0.02, roughness:0.75 });
+    const mouthMat = new THREE.MeshStandardMaterial({ color: 0x7a2b35, metalness:0.02, roughness:0.85 });
+
+    const hTorso = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.70, 10, 20), suitMat);
+    hTorso.position.set(0, 1.44, 0);
+    host.add(hTorso);
+
+    const hHead = new THREE.Mesh(new THREE.SphereGeometry(0.245, 26, 26), skinMat);
+    hHead.position.set(0, 2.07, 0.04);
+    host.add(hHead);
+
+    const hair = new THREE.Mesh(new THREE.SphereGeometry(0.255, 24, 24, 0, Math.PI*2, 0, Math.PI*0.55), hairMat);
+    hair.position.set(0, 2.17, 0.04);
+    host.add(hair);
+
+    const eyeGeo = new THREE.SphereGeometry(0.045, 14, 14);
+    const pupilGeo = new THREE.SphereGeometry(0.020, 12, 12);
+
+    const eyeL = new THREE.Mesh(eyeGeo, eyeWhiteMat);
+    const eyeR = new THREE.Mesh(eyeGeo, eyeWhiteMat);
+    eyeL.position.set(-0.07, 2.08, 0.24);
+    eyeR.position.set( 0.07, 2.08, 0.24);
+    host.add(eyeL, eyeR);
+
+    const pupL = new THREE.Mesh(pupilGeo, pupilMat);
+    const pupR = new THREE.Mesh(pupilGeo, pupilMat);
+    pupL.position.set(-0.07, 2.075, 0.275);
+    pupR.position.set( 0.07, 2.075, 0.275);
+    host.add(pupL, pupR);
+
+    const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.03, 0.02), mouthMat);
+    mouth.position.set(0, 1.99, 0.26);
+    host.add(mouth);
+
+    const tie = new THREE.Mesh(new THREE.ConeGeometry(0.105, 0.30, 18), tieMat);
+    tie.position.set(0, 1.56, 0.20);
+    tie.rotation.x = Math.PI;
+    host.add(tie);
+
+    const hLeftArmPivot = new THREE.Group();
+    hLeftArmPivot.position.set(-0.32, 1.66, 0.02);
+    host.add(hLeftArmPivot);
+
+    const hRightArmPivot = new THREE.Group();
+    hRightArmPivot.position.set(0.32, 1.66, 0.02);
+    host.add(hRightArmPivot);
+
+    const hArmGeo = new THREE.CapsuleGeometry(0.10, 0.48, 8, 16);
+    const hArmL = new THREE.Mesh(hArmGeo, suitMat);
+    const hArmR = new THREE.Mesh(hArmGeo, suitMat);
+
+    hArmL.position.set(-0.06, -0.24, 0);
+    hArmL.rotation.z = 0.30;
+    hLeftArmPivot.add(hArmL);
+
+    hArmR.position.set(0.06, -0.24, 0);
+    hArmR.rotation.z = -0.30;
+    hRightArmPivot.add(hArmR);
+
+    const hLegGeo = new THREE.CapsuleGeometry(0.115, 0.56, 8, 16);
+    const hLeg1 = new THREE.Mesh(hLegGeo, suitMat);
+    const hLeg2 = new THREE.Mesh(hLegGeo, suitMat);
+    hLeg1.position.set(-0.14, 0.80, 0);
+    hLeg2.position.set( 0.14, 0.80, 0);
+    host.add(hLeg1, hLeg2);
+
+    const micMat = new THREE.MeshStandardMaterial({ color: 0xc8d2e8, metalness:0.45, roughness:0.22 });
+    const mic = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.34, 12), micMat);
+    mic.position.set(0.38, 1.54, 0.28);
+    mic.rotation.z = -0.25;
+    host.add(mic);
+
+    const podiumMat = new THREE.MeshStandardMaterial({ color: 0x1b2842, metalness:0.22, roughness:0.45 });
+    const podium = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.10, 0.30, 28), podiumMat);
+    podium.position.set(host.position.x, 0.30, host.position.z);
+    scene.add(podium);
+
+    // ---------------- Logo 3D del conduttore ----------------
+    let hostLogoSprite = null;
+
+    function setHostLogo3D(logoUrl){
+      if (!logoUrl) return;
+
+      if (hostLogoSprite) {
+        host.remove(hostLogoSprite);
+        if (hostLogoSprite.material.map) hostLogoSprite.material.map.dispose();
+        hostLogoSprite.material.dispose();
+        hostLogoSprite = null;
+      }
+
+      textureLoader.load(
+        logoUrl,
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          tex.minFilter = THREE.LinearMipmapLinearFilter;
+          tex.magFilter = THREE.LinearFilter;
+
+          const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+          hostLogoSprite = new THREE.Sprite(mat);
+          hostLogoSprite.scale.set(0.85, 0.85, 1);
+          hostLogoSprite.position.set(0, 2.95, 0);
+          host.add(hostLogoSprite);
+        },
+        undefined,
+        (err) => console.warn("Host logo load failed (CORS/file):", logoUrl, err)
+      );
+    }
+
+    // ---------------- Voce conduttore ----------------
+    let hostBarTimer = 0;
+    let hostMood = "idle"; // idle | happy | warn | sad
+    function say(line, mood="idle", sec=2.2){
+      hostBar.innerHTML = `<b>${hostObj.name}:</b> ${line}`;
+      hostBarTimer = sec;
+      hostMood = mood;
+    }
+
+    // ---------------- Game state ----------------
+    let level = 1;
+    let score = 0;
+    let streak = 0;
+
+    let state = "ASK"; // ASK | OPENING | FALLING | GAMEOVER
+    let current = null;
+
+    // Trap + fall anim
+    let doorT = 0;
+    let fallVy = 0;
+    let contestantY = 0;
+
+    function updateUI(){
+      uiLvl.textContent = String(level);
+      uiScore.textContent = String(score);
+      uiStreak.textContent = String(streak);
+      uiHostName.textContent = hostObj.name;
+      /* logo conduttore rimosso */
+      uiPlayerName.textContent = contestantName;
+    }
+
+    function setButtonsEnabled(enabled){
+      [...aEl.querySelectorAll("button")].forEach(b => b.disabled = !enabled);
+    }
+
+    function setQuestion(){
+      current = pickQuestion(level);
+      qEl.textContent = current.q;
+      hintEl.textContent = current.hint ? ("Suggerimento: " + current.hint) : "";
+
+      aEl.innerHTML = "";
+      const labels = ["A","B","C","D"];
+      current.a.forEach((txt, idx) => {
+        const b = document.createElement("button");
+        b.className = "btn";
+        b.textContent = `${labels[idx]}) ${txt}`;
+        b.addEventListener("click", () => answer(idx));
+        aEl.appendChild(b);
+      });
+
+      doorT = 0;
+      leftPivot.rotation.z = 0;
+      rightPivot.rotation.z = 0;
+
+      contestantY = 0;
+      fallVy = 0;
+      contestantMesh.position.set(0, 0, 0);
+      contestantMesh.visible = true;
+
+      overlay.style.display = "none";
+      setButtonsEnabled(true);
+      state = "ASK";
+
+      updateUI();
+      /* logo 3D conduttore rimosso */
+
+      say(`Benvenuto ${contestantName}. Livello ${level}: scegli A/B/C/D.`, "idle", 2.6);
+    }
+
+    function correctAnswer(){
+      streak += 1;
+      const basePts = 220 + level*45;
+      const streakBonus = Math.min(260, streak*25);
+      score += basePts + streakBonus;
+
+      say(`Corretto! ${contestantName}, avanti: livello ${level+1}.`, "happy", 1.7);
+
+      overlayCard.innerHTML = `
+        <div style="font-size:22px;font-weight:950;margin-bottom:6px">✅ Corretto</div>
+        <div style="opacity:.9">+${basePts}+${streakBonus} (streak)</div>
+        <div style="opacity:.85;margin-top:8px">Prossima domanda...</div>
+      `;
+      overlay.style.display = "flex";
+
+      level += 1;
+      updateUI();
+      setTimeout(() => setQuestion(), 850);
+    }
+
+    function wrongAnswer(){
+      streak = 0;
+      state = "OPENING";
+      setButtonsEnabled(false);
+      say(`No… ${contestantName}. Si apre la botola.`, "warn", 2.0);
+      updateUI();
+    }
+
+    function answer(idx){
+      if (state !== "ASK") return;
+      const ok = idx === current.correct;
+      ok ? correctAnswer() : wrongAnswer();
+    }
+
+    function restartNewContestant(){
+      contestantName = pickDifferent(CONTESTANTS, contestantName);
+
+      // cambia conduttore ogni tanto (evita ripetizioni)
+      if (Math.random() < 0.25) {
+        let next = pick(HOSTS);
+        while (next.name === hostObj.name) next = pick(HOSTS);
+        hostObj = next;
+      }
+
+      level = 1; score = 0; streak = 0;
+      updateUI();
+      setQuestion();
+    }
+
+    // Tasti A/B/C/D + restart
+    addEventListener("keydown", (e) => {
+      if (state === "ASK") {
+        if (e.code === "KeyA") answer(0);
+        if (e.code === "KeyB") answer(1);
+        if (e.code === "KeyC") answer(2);
+        if (e.code === "KeyD") answer(3);
+      }
+      if (e.code === "Space" && state === "GAMEOVER") restartNewContestant();
+    });
+
+    // Start
+    updateUI();
+    setQuestion();
+
+    // ---------------- Anim loop ----------------
+    const clock = new THREE.Clock();
+
+    // blink state
+    let blinkT = 0;
+    let nextBlink = 1.5 + Math.random()*2.2;
+
+    function tick(){
+      const dt = Math.min(clock.getDelta(), 0.033);
+      const t = clock.elapsedTime;
+
+      // Camera dolly TV
+      const camX = Math.sin(t*0.12)*0.75;
+      const camZ = 13.0 + Math.cos(t*0.10)*0.30;
+      camera.position.x += (camX - camera.position.x)*0.02;
+      camera.position.y += (4.85 - camera.position.y)*0.03;
+      camera.position.z += (camZ - camera.position.z)*0.02;
+      camera.lookAt(0, 1.7, 0);
+
+      // LED pulse
+      for (let i=0;i<panels.length;i++){
+        const p = panels[i];
+        const wave = 0.55 + 0.45*Math.sin(t*1.25 + i*0.65);
+        p.material.emissiveIntensity = 0.55 + wave*0.85;
+      }
+
+      trapGlow.material.opacity = 0.18 + 0.07*Math.sin(t*2.1);
+      aura.scale.setScalar(1.0 + Math.sin(t*4.8)*0.04);
+      cHead.rotation.y = Math.sin(t*1.4)*0.08;
+
+      // Host bar timer
+      if (hostBarTimer > 0) {
+        hostBarTimer -= dt;
+        if (hostBarTimer <= 0) {
+          hostBar.innerHTML = `<b>${hostObj.name}:</b> ${state==="ASK" ? "Rispondi quando vuoi." : "..."}`;
+          hostMood = "idle";
+        }
+      }
+
+      // Host idle + mood gestures
+      host.rotation.y = -0.35 + Math.sin(t*0.8)*0.06;
+      hHead.rotation.y = Math.sin(t*1.1)*0.08;
+
+      const idleArm = Math.sin(t*1.6)*0.08;
+      let moodBoost = 0;
+      let moodWave = 0;
+
+      if (hostMood === "happy") { moodBoost = 0.42; moodWave = Math.sin(t*6.0)*0.12; }
+      if (hostMood === "warn")  { moodBoost = 0.26; moodWave = Math.sin(t*5.0)*0.09; }
+      if (hostMood === "sad")   { moodBoost = 0.10; moodWave = Math.sin(t*4.0)*0.06; }
+
+      hLeftArmPivot.rotation.x  = -0.18 + idleArm + moodBoost + moodWave;
+      hRightArmPivot.rotation.x = -0.12 - idleArm + (moodBoost*0.7);
+
+      // Blink
+      nextBlink -= dt;
+      if (nextBlink <= 0) {
+        blinkT = 0.12;
+        nextBlink = 1.6 + Math.random()*2.4;
+      }
+      if (blinkT > 0) {
+        blinkT -= dt;
+        eyeL.scale.y = 0.18;
+        eyeR.scale.y = 0.18;
+      } else {
+        eyeL.scale.y = 1;
+        eyeR.scale.y = 1;
+      }
+
+      // Mouth talking
+      const talking = hostBarTimer > 0.15 && overlay.style.display !== "flex";
+      mouth.scale.x = 1.0 + (talking ? Math.max(0, Math.sin(t*18))*0.6 : 0);
+      mouth.scale.y = 1.0 + (talking ? Math.max(0, Math.sin(t*18 + 1.2))*0.9 : 0);
+
+      // Pupils slight move
+      const look = Math.sin(t*0.9)*0.01;
+      pupL.position.x = -0.07 + look;
+      pupR.position.x =  0.07 + look;
+
+      // Trap opening / falling
+      if (state === "OPENING") {
+        doorT = Math.min(1, doorT + dt*1.3);
+        const ang = doorT * (Math.PI/2) * 0.86;
+        leftPivot.rotation.z  =  ang;
+        rightPivot.rotation.z = -ang;
+        if (doorT > 0.95) {
+          state = "FALLING";
+          fallVy = -0.2;
+          hostMood = "sad";
+        }
+      }
+
+      if (state === "FALLING") {
+        fallVy -= dt * 9.2;
+        contestantY += fallVy * dt;
+        contestantMesh.position.y = contestantY;
+
+        if (contestantMesh.position.y < -22) {
+          state = "GAMEOVER";
+          overlayCard.innerHTML = `
+            <div style="font-size:22px;font-weight:950;margin-bottom:6px">💥 ${contestantName} è caduto</div>
+            <div style="opacity:.9">Risposta sbagliata.</div>
+            <div style="opacity:.9">Score: <b>${score}</b> • Livello: <b>${level}</b></div>
+            <div style="opacity:.85;margin-top:8px">Premi <b>Spazio</b> per un nuovo concorrente</div>
+          `;
+          overlay.style.display = "flex";
+          say(`Peccato. Cambiamo concorrente.`, "sad", 2.4);
+        }
+      }
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+
+    tick();
+
+    addEventListener("resize", () => {
+      camera.aspect = innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+  </script>
+</body>
+</html>
