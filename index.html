@@ -490,27 +490,7 @@ footer{padding:18px; text-align:center; color:var(--muted)}
   .personQuote{ max-width:none; }
 }
 
-
-
-
-  
-
-/* Embed Quiz 3D */
-.embedWrap{
-  margin-top:12px;
-  border:1px solid var(--line);
-  border-radius:18px;
-  overflow:hidden;
-  background:rgba(0,0,0,.22);
-  box-shadow: var(--shadow2);
-}
-.embedWrap iframe{
-  width:100%;
-  height:min(70vh,720px);
-  border:0;
-  display:block;
-}
-</style>
+  </style>
 </head>
 
 <body>
@@ -536,7 +516,6 @@ footer{padding:18px; text-align:center; color:var(--muted)}
 
   <div class="indicator" id="indicator"></div>
 </nav>
-
 
     </div>
   </header>
@@ -611,24 +590,7 @@ footer{padding:18px; text-align:center; color:var(--muted)}
           <div class="callout">
             <strong style="color:var(--text)">Regola veloce:</strong>
             se una notizia ti fa reagire di impulso (paura/rabbia/entusiasmo), fermati e ragiona.
-          
-          <hr />
-
-          <span class="badge">Quiz 3D</span>
-          <h3 style="margin:10px 0 6px">Caduta Libera (integrato)</h3>
-          <p class="muted" style="margin:0 0 12px">
-            Versione 3D del quiz in stile “Caduta Libera”. Puoi giocarci direttamente qui sotto.
-          </p>
-
-          <div class="embedWrap">
-            <iframe src="iiii.html" title="Quiz 3D Caduta Libera" loading="lazy" allow="fullscreen; autoplay"></iframe>
           </div>
-
-          <p class="muted" style="margin:10px 0 0">
-            Se l’iframe non funziona (alcuni browser bloccano risorse locali), aprilo in una nuova scheda:
-            <a href="iiii.html" target="_blank" rel="noopener">Apri quiz 3D</a>
-          </p>
-</div>
         </div>
 
         <aside class="card reveal">
@@ -1537,7 +1499,6 @@ footer{padding:18px; text-align:center; color:var(--muted)}
     img.replaceWith(fallback);
   }, { once:true });
 });
-
 
     // ---------- INIT ----------
     renderGallery();
