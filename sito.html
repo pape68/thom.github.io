@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StopHateSpeech — Comprendere e Combattere l'Odio Online</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+
+    :root {
+      --bg:        #020617;
+      --bg-1:      #0f172a;
+      --bg-2:      #1e293b;
+      --bg-3:      #334155;
+      --text:      #f1f5f9;
+      --text-2:    #cbd5e1;
+      --text-3:    #94a3b8;
+      --text-4:    #64748b;
+      --border:    #1e293b;
+      --border-2:  #334155;
+      --red:       #ef4444;
+      --red-d:     #dc2626;
+      --red-bg:    rgba(127,29,29,.25);
+      --red-border:rgba(185,28,28,.4);
+      --blue:      #3b82f6;
+      --blue-bg:   rgba(23,37,84,.3);
+      --blue-border:rgba(30,64,175,.4);
+      --green:     #22c55e;
+      --green-bg:  rgba(20,83,45,.25);
+      --green-border:rgba(21,128,61,.4);
+      --amber:     #f59e0b;
+      --amber-bg:  rgba(120,53,15,.25);
+      --amber-border:rgba(146,64,14,.4);
+      --purple:    #a855f7;
+      --purple-bg: rgba(88,28,135,.25);
+      --teal:      #14b8a6;
+      --teal-bg:   rgba(19,78,74,.25);
+    }
+
+
+    html { scroll-behavior: smooth; }
+
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+
+    a { color: inherit; text-decoration: none; }
+    ul, ol { list-style: none; }
+    img { max-width: 100%; }
+
+
+    /* ===== LAYOUT ===== */
+    .container   { max-width: 1280px; margin: 0 auto; padding: 0 1.25rem; }
+    .container-md{ max-width: 896px;  margin: 0 auto; padding: 0 1.25rem; }
+    .container-lg{ max-width: 1152px; margin: 0 auto; padding: 0 1.25rem; }
+
+
+    /* ===== NAVBAR ===== */
+    nav {
+      background: var(--bg-1);
+      border-bottom: 1px solid var(--border-2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .nav-logo-box {
+      width: 32px; height: 32px;
+      background: var(--red-d);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: .75rem; color: #fff;
+    }
+    .nav-logo span { color: var(--red); }
+    .nav-links { display: flex; gap: .25rem; }
+    .nav-links a {
+      color: var(--text-3);
+      padding: .45rem .75rem;
+      border-radius: 6px;
+      font-size: .875rem;
+      font-weight: 500;
+      transition: background .15s, color .15s;
+    }
+    .nav-links a:hover { background: var(--bg-2); color: var(--text); }
+
+
+    /* ===== PAGE SYSTEM (CSS-only SPA via :target) ===== */
+    .page { display: none; }
+    .page:target { display: block; }
+    #home { display: block; }
+    #home:target ~ #home-default,
+    #cose:target ~ #home-default   { display: none; }
+
+
+    /*
+      Trick: #home is shown by default via display:block.
+      When any other section is targeted, hide home and show the target.
+      We achieve this with a "default-on" pattern:
+      - All pages hidden by default
+      - #home shown by default
+      - When another page is :target, it becomes visible and the user
+        navigates there. Home link goes to #home.
+    */
+
+
+    /* ===== SECTIONS ===== */
+    section.sec {
+      padding: 4rem 0;
+    }
+    section.sec-dark {
+      background: var(--bg-1);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 4rem 0;
+    }
+
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-1) 100%);
+      border-bottom: 1px solid var(--border-2);
+      padding: 5rem 0 4rem;
+    }
+    .hero-glow-r {
+      position: absolute; top: 5rem; left: 2.5rem;
+      width: 18rem; height: 18rem;
+      background: var(--red-d); border-radius: 50%;
+      filter: blur(80px); opacity: .08; pointer-events: none;
+    }
+    .hero-glow-b {
+      position: absolute; bottom: 2.5rem; right: 2.5rem;
+      width: 24rem; height: 24rem;
+      background: var(--blue); border-radius: 50%;
+      filter: blur(80px); opacity: .08; pointer-events: none;
+    }
+    .hero-content { position: relative; max-width: 800px; }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.15; margin-bottom: 1.25rem; }
+    .hero h1 span { color: var(--red); }
+    .hero p { font-size: 1.2rem; color: var(--text-2); max-width: 620px; margin-bottom: 2rem; }
+    .hero-btns { display: flex; flex-wrap: wrap; gap: 1rem; }
+
+
+    /* ===== BADGE ===== */
+    .badge {
+      display: inline-block;
+      font-size: .7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em;
+      padding: .25rem .75rem;
+      border-radius: 9999px;
+      margin-bottom: 1rem;
+    }
+    .badge-red   { background: rgba(220,38,38,.15); color: #fca5a5; border: 1px solid rgba(220,38,38,.3); }
+    .badge-blue  { background: rgba(59,130,246,.15); color: #93c5fd; border: 1px solid rgba(59,130,246,.3); }
+    .badge-green { background: rgba(34,197,94,.15); color: #86efac; border: 1px solid rgba(34,197,94,.3); }
+    .badge-amber { background: rgba(245,158,11,.15); color: #fcd34d; border: 1px solid rgba(245,158,11,.3); }
+
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-block;
+      font-weight: 600; font-size: .95rem;
+      padding: .75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .btn-red   { background: var(--red-d); color: #fff; }
+    .btn-red:hover { background: var(--red); }
+    .btn-outline {
+      border: 1px solid var(--border-2);
+      color: var(--text-3);
+    }
+    .btn-outline:hover { border-color: var(--text-3); color: var(--text); }
+    .btn-green { background: #15803d; color: #fff; }
+    .btn-green:hover { background: #16a34a; }
+    .btn-amber { background: #b45309; color: #fff; }
+    .btn-amber:hover { background: #d97706; }
+    .btn-lg { padding: 1rem 2rem; font-size: 1.1rem; border-radius: 12px; }
+
+
+    /* ===== STATS ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+    .stat-card {
+      text-align: center;
+      padding: 1.5rem;
+      background: rgba(30,41,59,.5);
+      border: 1px solid var(--border-2);
+      border-radius: 12px;
+    }
+    .stat-value { font-size: 2.25rem; font-weight: 800; color: var(--red); margin-bottom: .5rem; }
+    .stat-label { font-size: .85rem; color: var(--text-3); line-height: 1.5; }
+
+
+    /* ===== SECTION CARDS (home) ===== */
+    .sec-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .sec-card {
+      display: flex; flex-direction: column; gap: .75rem;
+      padding: 1.5rem;
+      background: var(--bg-1);
+      border: 1px solid var(--border-2);
+      border-radius: 10px;
+      transition: background .15s;
+    }
+    .sec-card:hover { background: var(--bg-2); }
+    .sec-card.bl-blue  { border-left: 4px solid var(--blue); }
+    .sec-card.bl-amber { border-left: 4px solid var(--amber); }
+    .sec-card.bl-green { border-left: 4px solid var(--green); }
+    .sec-card.bl-red   { border-left: 4px solid var(--red); }
+    .sec-card-header { display: flex; align-items: center; justify-content: space-between; }
+    .sec-card-icon { font-size: 1.75rem; }
+    .sec-card-badge { font-size: .7rem; font-weight: 600; color: var(--text-4); background: var(--bg-2); padding: .2rem .6rem; border-radius: 9999px; }
+    .sec-card h3 { font-size: 1.1rem; font-weight: 700; }
+    .sec-card p  { font-size: .875rem; color: var(--text-3); line-height: 1.6; }
+    .sec-card .more { font-size: .85rem; font-weight: 500; color: var(--text-4); margin-top: auto; }
+    .sec-card:hover .more { color: var(--text-2); }
+
+
+    /* ===== CTA BANNER ===== */
+    .cta-banner {
+      background: rgba(127,29,29,.2);
+      border-top: 1px solid rgba(153,27,27,.35);
+      border-bottom: 1px solid rgba(153,27,27,.35);
+      padding: 4rem 0;
+      text-align: center;
+    }
+    .cta-banner h2 { font-size: 1.75rem; font-weight: 800; margin-bottom: 1rem; }
+    .cta-banner p  { color: var(--text-2); font-size: 1.1rem; margin-bottom: 2rem; }
+
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+      padding: 4rem 0 3rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-header.blue-tint  { background: linear-gradient(135deg, var(--bg-1), rgba(30,27,75,.2), var(--bg-1)); }
+    .page-header.amber-tint { background: linear-gradient(135deg, var(--bg-1), rgba(120,53,15,.15), var(--bg-1)); }
+    .page-header.green-tint { background: linear-gradient(135deg, var(--bg-1), rgba(20,83,45,.15), var(--bg-1)); }
+    .page-header.red-tint   { background: linear-gradient(135deg, var(--bg-1), rgba(127,29,29,.15), var(--bg-1)); }
+    .back-link { font-size: .875rem; color: var(--text-4); display: inline-flex; align-items: center; gap: .25rem; margin-bottom: 1.25rem; transition: color .15s; }
+    .back-link:hover { color: var(--text-2); }
+    .page-header h1 { font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 800; line-height: 1.2; margin-bottom: 1rem; }
+    .page-header p  { font-size: 1.1rem; color: var(--text-2); max-width: 680px; line-height: 1.7; }
+
+
+    /* ===== SECTION TITLE WITH ACCENT ===== */
+    .sec-title {
+      display: flex; align-items: center; gap: .75rem;
+      margin-bottom: 1rem;
+    }
+    .accent-bar { width: 4px; height: 2rem; border-radius: 9999px; flex-shrink: 0; }
+    .accent-red    { background: var(--red); }
+    .accent-blue   { background: var(--blue); }
+    .accent-green  { background: var(--green); }
+    .accent-amber  { background: var(--amber); }
+    .accent-purple { background: var(--purple); }
+    .sec-title h2 { font-size: 1.5rem; font-weight: 700; }
+
+
+    /* ===== BLOCKQUOTE ===== */
+    .quote-box {
+      background: var(--blue-bg);
+      border: 1px solid var(--blue-border);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 3rem;
+    }
+    .quote-box h3 { font-size: 1rem; font-weight: 600; color: #93c5fd; margin-bottom: .75rem; }
+    .quote-box blockquote {
+      font-style: italic; font-size: 1.05rem;
+      color: var(--text-2); line-height: 1.7;
+      border-left: 4px solid var(--blue);
+      padding-left: 1rem;
+    }
+
+
+    /* ===== 2-COL COMPARE ===== */
+    .compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+    .compare-box { border-radius: 12px; padding: 1.5rem; border: 1px solid; }
+    .compare-box.green { background: var(--green-bg); border-color: var(--green-border); }
+    .compare-box.red   { background: var(--red-bg);   border-color: var(--red-border); }
+    .compare-box h3 { font-weight: 600; margin-bottom: .75rem; }
+    .compare-box.green h3 { color: #86efac; }
+    .compare-box.red   h3 { color: #fca5a5; }
+    .compare-box ul li { font-size: .875rem; color: var(--text-2); padding: .2rem 0; }
+
+
+    /* ===== CATEGORY CARDS ===== */
+    .cat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+    .cat-card {
+      background: rgba(30,41,59,.5);
+      border: 1px solid var(--border-2);
+      border-radius: 12px; padding: 1.5rem;
+      transition: border-color .15s;
+    }
+    .cat-card:hover { border-color: var(--text-4); }
+    .cat-card .icon { font-size: 1.75rem; margin-bottom: .75rem; }
+    .cat-card h3 { font-weight: 600; margin-bottom: .5rem; }
+    .cat-card p  { font-size: .85rem; color: var(--text-3); line-height: 1.6; margin-bottom: 1rem; }
+    .tags { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .tag { font-size: .7rem; background: var(--bg-3); color: var(--text-2); padding: .2rem .6rem; border-radius: 9999px; }
+
+
+    /* ===== PLATFORM GRID ===== */
+    .platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 3rem; }
+    .platform-item {
+      display: flex; align-items: flex-start; gap: .75rem;
+      background: var(--bg-1); border: 1px solid var(--border); border-radius: 8px; padding: 1rem;
+    }
+    .platform-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; margin-top: .4rem; flex-shrink: 0; }
+    .platform-item strong { display: block; font-size: .875rem; }
+    .platform-item span { font-size: .75rem; color: var(--text-4); }
+
+
+    /* ===== NAV BUTTONS ===== */
+    .page-nav { display: flex; flex-wrap: wrap; gap: 1rem; padding-top: 2rem; border-top: 1px solid var(--border); margin-top: 1rem; }
+    .page-nav .btn { flex: 1; min-width: 160px; text-align: center; }
+
+
+    /* ===== EFFECT LIST ===== */
+    .effect-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+    .effect-item {
+      display: flex; gap: 1rem;
+      background: var(--bg-1); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem;
+    }
+    .effect-dot { width: 8px; height: 8px; background: var(--red); border-radius: 50%; margin-top: .4rem; flex-shrink: 0; }
+    .effect-item h3 { font-weight: 600; margin-bottom: .25rem; }
+    .effect-item p  { font-size: .875rem; color: var(--text-3); line-height: 1.6; }
+
+
+    /* ===== AMBER QUOTE ===== */
+    .amber-quote {
+      background: var(--amber-bg); border: 1px solid var(--amber-border);
+      border-radius: 12px; padding: 1.5rem; margin-top: 2rem;
+    }
+    .amber-quote p { font-style: italic; font-size: 1.05rem; color: var(--text-2); line-height: 1.7; }
+    .amber-quote cite { display: block; font-size: .85rem; color: var(--amber); margin-top: .75rem; font-style: normal; }
+
+
+    /* ===== SOCIAL CARDS ===== */
+    .social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+    .social-card {
+      background: rgba(30,41,59,.5); border: 1px solid var(--border-2);
+      border-radius: 12px; padding: 1.5rem;
+    }
+    .social-card .icon { font-size: 1.75rem; margin-bottom: .75rem; }
+    .social-card h3 { font-weight: 600; margin-bottom: .5rem; }
+    .social-card p  { font-size: .85rem; color: var(--text-3); line-height: 1.6; }
+
+
+    /* ===== HISTORY BOX ===== */
+    .history-box {
+      background: rgba(127,29,29,.12); border: 1px solid rgba(153,27,27,.35);
+      border-radius: 12px; padding: 1.5rem 2rem; margin-top: 3rem;
+    }
+    .history-box h3 { font-weight: 600; font-size: 1.1rem; color: #fca5a5; margin-bottom: 1rem; }
+    .history-box p  { color: var(--text-2); line-height: 1.7; margin-bottom: 1rem; }
+    .history-box li { display: flex; gap: .75rem; font-size: .875rem; color: var(--text-3); padding: .5rem 0; }
+    .history-box li strong { color: var(--red); white-space: nowrap; }
+
+
+    /* ===== LEGAL CARDS ===== */
+    .legal-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 3rem; }
+    .legal-card {
+      background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;
+    }
+    .legal-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
+    .legal-card-country { display: flex; align-items: center; gap: .75rem; }
+    .legal-card-country .flag { font-size: 1.5rem; }
+    .legal-card-country h3 { font-weight: 600; }
+    .legal-card .law { font-size: .875rem; font-weight: 500; color: #93c5fd; margin-bottom: .5rem; }
+    .legal-card p   { font-size: .875rem; color: var(--text-3); line-height: 1.6; }
+    .status-green  { font-size: .75rem; font-weight: 700; color: #86efac; }
+    .status-blue   { font-size: .75rem; font-weight: 700; color: #93c5fd; }
+    .status-amber  { font-size: .75rem; font-weight: 700; color: #fcd34d; }
+
+
+    /* ===== ACTION CARDS ===== */
+    .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 4rem; }
+    .action-card { border-radius: 12px; padding: 1.5rem; border: 1px solid; }
+    .action-card.c-blue   { background: var(--blue-bg);   border-color: var(--blue-border); }
+    .action-card.c-amber  { background: var(--amber-bg);  border-color: var(--amber-border); }
+    .action-card.c-green  { background: var(--green-bg);  border-color: var(--green-border); }
+    .action-card.c-purple { background: var(--purple-bg); border-color: rgba(126,34,206,.4); }
+    .action-card.c-red    { background: var(--red-bg);    border-color: var(--red-border); }
+    .action-card.c-teal   { background: var(--teal-bg);   border-color: rgba(13,148,136,.4); }
+    .action-step { font-size: 2.5rem; font-weight: 900; opacity: .5; margin-bottom: .75rem; line-height: 1; }
+    .action-card.c-blue   .action-step { color: var(--blue); }
+    .action-card.c-amber  .action-step { color: var(--amber); }
+    .action-card.c-green  .action-step { color: var(--green); }
+    .action-card.c-purple .action-step { color: var(--purple); }
+    .action-card.c-red    .action-step { color: var(--red); }
+    .action-card.c-teal   .action-step { color: var(--teal); }
+    .action-card h3 { font-weight: 600; margin-bottom: .5rem; }
+    .action-card p  { font-size: .875rem; color: var(--text-3); line-height: 1.6; }
+
+
+    /* ===== COUNTER-SPEECH ===== */
+    .counter-box {
+      background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem;
+    }
+    .counter-box h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: .5rem; }
+    .counter-box > p { font-size: .875rem; color: var(--text-3); margin-bottom: 1.5rem; }
+    .counter-tip { border-left: 2px solid var(--green); padding-left: 1rem; margin-bottom: 1rem; }
+    .counter-tip h4 { font-size: .875rem; font-weight: 600; color: #86efac; margin-bottom: .25rem; }
+    .counter-tip p  { font-size: .875rem; color: var(--text-3); font-style: italic; }
+
+
+    /* ===== PLATFORM REPORT CARDS ===== */
+    .platform-report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+    .platform-report-card {
+      background: rgba(30,41,59,.5); border: 1px solid var(--border-2); border-radius: 12px; padding: 1.5rem;
+    }
+    .platform-report-card .phead { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+    .platform-report-card .phead .icon { font-size: 1.5rem; }
+    .platform-report-card .phead h3 { font-weight: 600; }
+    .platform-report-card ol { counter-reset: steps; }
+    .platform-report-card li {
+      display: flex; gap: .75rem; font-size: .875rem; color: var(--text-3); padding: .25rem 0;
+    }
+    .platform-report-card li .num { color: var(--blue); font-weight: 700; flex-shrink: 0; }
+
+
+    /* ===== TIP BOX ===== */
+    .tip-box {
+      background: var(--blue-bg); border: 1px solid var(--blue-border);
+      border-radius: 12px; padding: 1.5rem; margin-top: 2rem;
+    }
+    .tip-box p.title { font-weight: 600; color: #93c5fd; margin-bottom: .5rem; }
+    .tip-box p       { font-size: .875rem; color: var(--text-3); line-height: 1.7; }
+
+
+    /* ===== INSTITUTION CARDS ===== */
+    .inst-list { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 3rem; }
+    .inst-card {
+      background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;
+    }
+    .inst-head { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+    .inst-head .icon { font-size: 1.5rem; }
+    .inst-head h3 { font-weight: 600; }
+    .inst-card li { display: flex; gap: .5rem; font-size: .875rem; color: var(--text-3); padding: .25rem 0; }
+    .inst-card li .check { color: var(--green); flex-shrink: 0; }
+
+
+    /* ===== EMERGENCY CARDS ===== */
+    .emergency-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .emergency-card { border-radius: 12px; padding: 1.25rem; border: 1px solid; }
+    .emergency-card.e-red    { background: rgba(127,29,29,.15); border-color: rgba(185,28,28,.45); }
+    .emergency-card.e-blue   { background: rgba(23,37,84,.2);   border-color: rgba(30,64,175,.4); }
+    .emergency-card.e-pink   { background: rgba(131,24,67,.15); border-color: rgba(157,23,77,.4); }
+    .emergency-card.e-purple { background: rgba(88,28,135,.15); border-color: rgba(107,33,168,.4); }
+    .emergency-card .ehead { display: flex; align-items: center; justify-content: space-between; margin-bottom: .5rem; }
+    .emergency-card h3 { font-weight: 600; }
+    .emergency-card .etype { font-size: .7rem; background: var(--bg-2); color: var(--text-3); padding: .15rem .5rem; border-radius: 9999px; }
+    .emergency-card .number { font-size: 1.75rem; font-weight: 800; margin-bottom: .5rem; }
+    .emergency-card .desc { font-size: .85rem; color: var(--text-3); margin-bottom: .25rem; }
+    .emergency-card .avail { font-size: .75rem; color: var(--text-4); }
+
+
+    .danger-box {
+      background: rgba(127,29,29,.3); border: 1px solid rgba(185,28,28,.45);
+      border-radius: 12px; padding: 1.25rem;
+    }
+    .danger-box p.title { font-weight: 600; color: #fca5a5; margin-bottom: .5rem; }
+    .danger-box p       { font-size: .875rem; color: var(--text-2); line-height: 1.7; }
+
+
+    /* ===== REPORTING CHANNELS ===== */
+    .report-list { display: flex; flex-direction: column; gap: 1rem; }
+    .report-card {
+      background: rgba(30,41,59,.5); border: 1px solid var(--border-2);
+      border-radius: 12px; padding: 1.5rem; display: flex; gap: 1rem;
+    }
+    .report-card .icon { font-size: 1.75rem; flex-shrink: 0; }
+    .report-card h3 { font-weight: 600; margin-bottom: .5rem; }
+    .report-card p  { font-size: .875rem; color: var(--text-3); line-height: 1.6; margin-bottom: .75rem; }
+    .report-card .link { font-size: .85rem; font-family: monospace; color: #93c5fd; background: var(--blue-bg); padding: .2rem .6rem; border-radius: 4px; }
+
+
+    /* ===== ORG GRID ===== */
+    .org-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 4rem; }
+    .org-card {
+      background: var(--bg-1); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem;
+      transition: border-color .15s;
+    }
+    .org-card:hover { border-color: var(--border-2); }
+    .org-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; }
+    .org-head .icon { font-size: 1.25rem; }
+    .org-head h3 { font-size: .875rem; font-weight: 600; }
+    .org-card p  { font-size: .75rem; color: var(--text-3); line-height: 1.6; margin-bottom: .75rem; }
+    .org-card .site { font-size: .75rem; font-family: monospace; color: #86efac; }
+
+
+    /* ===== SELF CARE GRID ===== */
+    .selfcare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+    .selfcare-card {
+      background: var(--amber-bg); border: 1px solid var(--amber-border);
+      border-radius: 12px; padding: 1.25rem;
+    }
+    .selfcare-card .icon { font-size: 1.5rem; margin-bottom: .75rem; }
+    .selfcare-card h3 { font-size: .875rem; font-weight: 600; margin-bottom: .5rem; }
+    .selfcare-card p  { font-size: .75rem; color: var(--text-3); line-height: 1.6; }
+
+
+    /* ===== SHARE BOX ===== */
+    .share-box {
+      margin-top: 4rem; background: var(--bg-1); border: 1px solid var(--border);
+      border-radius: 12px; padding: 2rem; text-align: center;
+    }
+    .share-box h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: .75rem; }
+    .share-box p  { font-size: .875rem; color: var(--text-3); margin-bottom: 1.5rem; }
+    .share-btns { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; }
+    .share-btns a {
+      border: 1px solid var(--border-2); color: var(--text-3); font-size: .875rem;
+      padding: .45rem 1rem; border-radius: 8px; transition: border-color .15s, color .15s;
+    }
+    .share-btns a:hover { border-color: var(--text-4); color: var(--text); }
+
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--bg-1);
+      border-top: 1px solid var(--border-2);
+      margin-top: auto;
+    }
+    .footer-inner {
+      max-width: 1280px; margin: 0 auto; padding: 3rem 1.25rem;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;
+    }
+    .footer-brand .logo { display: flex; align-items: center; gap: .6rem; font-weight: 600; margin-bottom: 1rem; }
+    .footer-brand p { font-size: .875rem; color: var(--text-3); line-height: 1.6; }
+    .footer-col h4 {
+      font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--text); margin-bottom: 1rem;
+    }
+    .footer-col li { padding: .25rem 0; }
+    .footer-col a { font-size: .875rem; color: var(--text-3); transition: color .15s; }
+    .footer-col a:hover { color: var(--text); }
+    .footer-col p { font-size: .875rem; color: var(--text-3); line-height: 1.6; margin-bottom: .75rem; }
+    .footer-bottom {
+      border-top: 1px solid var(--border); padding: 1.5rem;
+      text-align: center; font-size: .85rem; color: var(--text-4);
+    }
+
+
+    /* ===== UTILITY ===== */
+    .text-center { text-align: center; }
+    .mb-1  { margin-bottom: .25rem; }
+    .mb-2  { margin-bottom: .5rem; }
+    .mb-4  { margin-bottom: 1rem; }
+    .mb-6  { margin-bottom: 1.5rem; }
+    .mb-8  { margin-bottom: 2rem; }
+    .mb-10 { margin-bottom: 2.5rem; }
+    .mb-12 { margin-bottom: 3rem; }
+    .mt-8  { margin-top: 2rem; }
+    .mt-12 { margin-top: 3rem; }
+
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px) {
+      .hero { padding: 3rem 0; }
+      .nav-links { display: none; }
+      .page-nav { flex-direction: column; }
+      .page-nav .btn { min-width: 100%; }
+      .footer-inner { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+
+<!-- ===== NAVBAR ===== -->
+<nav>
+  <div class="nav-inner">
+    <a href="#home" class="nav-logo">
+      <div class="nav-logo-box">HS</div>
+      Stop<span>HateSpeech</span>
+    </a>
+    <div class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#cose">Cos'è l'Hate Speech</a>
+      <a href="#impatto">Impatto</a>
+      <a href="#combattere">Come Combatterlo</a>
+      <a href="#risorse">Risorse</a>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ================================================================
+     HOME
+     ================================================================ -->
+<div id="home" class="page">
+
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-glow-r"></div>
+    <div class="hero-glow-b"></div>
+    <div class="container">
+      <div class="hero-content">
+        <span class="badge badge-red">Risorsa educativa</span>
+        <h1>Capire e fermare<br><span>l'hate speech</span></h1>
+        <p>Il linguaggio d'odio ferisce persone reali, divide comunità e alimenta violenza. Informarsi è il primo passo per combatterlo.</p>
+        <div class="hero-btns">
+          <a href="#cose" class="btn btn-red">Scopri cos'è →</a>
+          <a href="#risorse" class="btn btn-outline">Hai bisogno di aiuto?</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Statistiche -->
+  <section class="sec-dark">
+    <div class="container">
+      <p class="text-center mb-10" style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-4)">I numeri del problema</p>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value">73%</div><div class="stat-label">degli utenti online ha assistito ad episodi di hate speech</div></div>
+        <div class="stat-card"><div class="stat-value">41%</div><div class="stat-label">ne è stato direttamente vittima almeno una volta</div></div>
+        <div class="stat-card"><div class="stat-value">60%+</div><div class="stat-label">dei giovani esposti riferisce effetti negativi sulla salute mentale</div></div>
+        <div class="stat-card"><div class="stat-value">2x</div><div class="stat-label">più probabilità di depressione nelle vittime di odio online</div></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Sezioni -->
+  <section class="sec">
+    <div class="container">
+      <div class="text-center mb-12">
+        <h2 style="font-size:1.875rem;font-weight:800;margin-bottom:.75rem;">Esplora le sezioni</h2>
+        <p style="color:var(--text-3);font-size:1.05rem;max-width:560px;margin:0 auto;">Dal riconoscimento al contrasto: una guida completa al fenomeno dell'hate speech.</p>
+      </div>
+      <div class="sec-cards">
+        <a href="#cose" class="sec-card bl-blue">
+          <div class="sec-card-header"><span class="sec-card-icon">📖</span><span class="sec-card-badge">Inizia da qui</span></div>
+          <h3>Cos'è l'Hate Speech</h3>
+          <p>Definizione, categorie e forme attraverso cui si manifesta il linguaggio d'odio nella vita quotidiana e online.</p>
+          <span class="more">Leggi di più →</span>
+        </a>
+        <a href="#impatto" class="sec-card bl-amber">
+          <div class="sec-card-header"><span class="sec-card-icon">⚠️</span><span class="sec-card-badge">Fondamentale</span></div>
+          <h3>Impatto e Conseguenze</h3>
+          <p>Le ripercussioni psicologiche, sociali e legali dell'hate speech sulle vittime e sulla società.</p>
+          <span class="more">Leggi di più →</span>
+        </a>
+        <a href="#combattere" class="sec-card bl-green">
+          <div class="sec-card-header"><span class="sec-card-icon">🛡️</span><span class="sec-card-badge">Agisci ora</span></div>
+          <h3>Come Combatterlo</h3>
+          <p>Strumenti pratici, strategie e azioni concrete per contrastare il linguaggio d'odio online e offline.</p>
+          <span class="more">Leggi di più →</span>
+        </a>
+        <a href="#risorse" class="sec-card bl-red">
+          <div class="sec-card-header"><span class="sec-card-icon">🆘</span><span class="sec-card-badge">Supporto</span></div>
+          <h3>Risorse e Aiuto</h3>
+          <p>Dove segnalare, a chi rivolgersi e come ottenere supporto se sei vittima di hate speech.</p>
+          <span class="more">Leggi di più →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- CTA Banner -->
+  <div class="cta-banner">
+    <div class="container-md">
+      <h2>Sei vittima di hate speech?</h2>
+      <p>Non sei solo. Esistono strumenti e persone che possono aiutarti.</p>
+      <a href="#risorse" class="btn btn-red btn-lg">Trova supporto ora</a>
+    </div>
+  </div>
+
+
+</div><!-- /home -->
+
+
+
+
+<!-- ================================================================
+     COS'È L'HATE SPEECH
+     ================================================================ -->
+<div id="cose" class="page">
+
+
+  <div class="page-header blue-tint">
+    <div class="container-md">
+      <a href="#home" class="back-link">← Torna alla home</a>
+      <span class="badge badge-blue">Fondamenti</span>
+      <h1>Cos'è l'Hate Speech?</h1>
+      <p>Il termine "hate speech" — linguaggio d'odio — indica qualsiasi forma di comunicazione che incita all'odio, alla discriminazione o alla violenza contro individui o gruppi in base a caratteristiche protette come razza, religione, genere, orientamento sessuale o disabilità.</p>
+    </div>
+  </div>
+
+
+  <section class="sec">
+    <div class="container-md">
+
+
+      <!-- Definizione ONU -->
+      <div class="quote-box">
+        <h3>Definizione — Nazioni Unite (2019)</h3>
+        <blockquote>
+          "Qualsiasi tipo di comunicazione verbale, scritta o comportamentale che attacca o usa linguaggio peggiorativo o discriminatorio in riferimento a una persona o a un gruppo in base a chi sono, in altre parole in base alla loro religione, etnia, nazionalità, razza, colore della pelle, discendenza, genere o altro fattore identitario."
+        </blockquote>
+      </div>
+
+
+      <!-- Libertà di espressione vs hate speech -->
+      <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:1.5rem;">La differenza con la libertà di espressione</h2>
+      <div class="compare-grid">
+        <div class="compare-box green">
+          <h3>✅ Espressione legittima</h3>
+          <ul>
+            <li>• Criticare politiche governative</li>
+            <li>• Esprimere disaccordo su idee religiose</li>
+            <li>• Satira e parodia critica</li>
+            <li>• Discussioni accademiche su temi sensibili</li>
+            <li>• Reportage giornalistico su eventi di odio</li>
+          </ul>
+        </div>
+        <div class="compare-box red">
+          <h3>❌ Hate speech</h3>
+          <ul>
+            <li>• Incitare alla violenza contro un gruppo</li>
+            <li>• Usare slur per denigrare persone</li>
+            <li>• Diffondere stereotipi disumanizzanti</li>
+            <li>• Minacciare individui per la loro identità</li>
+            <li>• Promuovere ideologie suprematiste</li>
+          </ul>
+        </div>
+      </div>
+
+
+    </div>
+  </section>
+
+
+  <!-- Categorie -->
+  <section class="sec-dark">
+    <div class="container-lg">
+      <h2 class="text-center" style="font-size:1.875rem;font-weight:800;margin-bottom:.75rem;">Categorie principali</h2>
+      <p class="text-center mb-12" style="color:var(--text-3);max-width:560px;margin-left:auto;margin-right:auto;">L'hate speech si manifesta in molte forme diverse. Riconoscerle è il primo passo per combatterle.</p>
+      <div class="cat-grid">
+        <div class="cat-card">
+          <div class="icon">🎭</div>
+          <h3>Odio basato su etnia e razza</h3>
+          <p>Insulti, stereotipi negativi e incitamento all'odio rivolto a persone in base alla loro origine etnica, nazionalità o colore della pelle.</p>
+          <div class="tags"><span class="tag">Stereotipi razziali</span><span class="tag">Slur etnici</span><span class="tag">Teorie della sostituzione</span></div>
+        </div>
+        <div class="cat-card">
+          <div class="icon">🙏</div>
+          <h3>Odio religioso</h3>
+          <p>Attacchi a credenti o non credenti basati sulla loro fede religiosa o sull'assenza di essa.</p>
+          <div class="tags"><span class="tag">Islamofobia</span><span class="tag">Antisemitismo</span><span class="tag">Anticlericarismo violento</span></div>
+        </div>
+        <div class="cat-card">
+          <div class="icon">⚧️</div>
+          <h3>Odio di genere e sessualità</h3>
+          <p>Contenuti che denigrano persone per il loro genere, orientamento sessuale o identità di genere.</p>
+          <div class="tags"><span class="tag">Misoginia online</span><span class="tag">Omotransfobia</span><span class="tag">Incels</span></div>
+        </div>
+        <div class="cat-card">
+          <div class="icon">♿</div>
+          <h3>Odio verso persone con disabilità</h3>
+          <p>Linguaggio denigrante verso chi ha disabilità fisiche, cognitive o psichiche.</p>
+          <div class="tags"><span class="tag">Abilismo</span><span class="tag">Mocking su social</span><span class="tag">Esclusione sistematica</span></div>
+        </div>
+        <div class="cat-card">
+          <div class="icon">🌍</div>
+          <h3>Xenofobia e nazionalismo estremo</h3>
+          <p>Ostilità verso stranieri, immigrati o rifugiati, spesso accompagnata da disinformazione.</p>
+          <div class="tags"><span class="tag">Anti-immigrazione violenta</span><span class="tag">Teorie del complotto globale</span></div>
+        </div>
+        <div class="cat-card">
+          <div class="icon">🏛️</div>
+          <h3>Odio politico e ideologico</h3>
+          <p>Attacchi personali violenti o incitamento basati sulle opinioni politiche o ideologiche.</p>
+          <div class="tags"><span class="tag">Doxing politico</span><span class="tag">Minacce a giornalisti</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Dove si manifesta -->
+  <section class="sec">
+    <div class="container-md">
+      <h2 style="font-size:1.875rem;font-weight:800;margin-bottom:.75rem;">Dove si manifesta</h2>
+      <p class="mb-8" style="color:var(--text-3);">L'hate speech non riguarda solo internet. Si trova ovunque ci sia comunicazione umana.</p>
+      <div class="platform-grid">
+        <div class="platform-item"><div class="platform-dot"></div><div><strong>Social media</strong><span>Post, commenti, stories, tweet</span></div></div>
+        <div class="platform-item"><div class="platform-dot"></div><div><strong>Gaming online</strong><span>Chat vocali, messaggi in-game</span></div></div>
+        <div class="platform-item"><div class="platform-dot"></div><div><strong>Messaggistica</strong><span>Gruppi WhatsApp, Telegram</span></div></div>
+        <div class="platform-item"><div class="platform-dot"></div><div><strong>Forum e community</strong><span>Reddit, Discord, forum tematici</span></div></div>
+        <div class="platform-item"><div class="platform-dot"></div><div><strong>Commenti su notizie</strong><span>Sezioni commento di giornali online</span></div></div>
+        <div class="platform-item"><div class="platform-dot"></div><div><strong>Vita offline</strong><span>Scritte sui muri, volantini, discorsi pubblici</span></div></div>
+      </div>
+
+
+      <div class="page-nav">
+        <a href="#impatto"    class="btn btn-amber">Scopri l'impatto →</a>
+        <a href="#combattere" class="btn btn-outline">Come combatterlo →</a>
+      </div>
+    </div>
+  </section>
+
+
+</div><!-- /cose -->
+
+
+
+
+<!-- ================================================================
+     IMPATTO E CONSEGUENZE
+     ================================================================ -->
+<div id="impatto" class="page">
+
+
+  <div class="page-header amber-tint">
+    <div class="container-md">
+      <a href="#home" class="back-link">← Torna alla home</a>
+      <span class="badge badge-amber">Impatto</span>
+      <h1>Impatto e Conseguenze</h1>
+      <p>L'hate speech non è solo "parole". Ha effetti reali e profondi sulle persone che ne sono bersaglio, sulle comunità e sull'intera società. Capire queste conseguenze è fondamentale per prenderne sul serio la gravità.</p>
+    </div>
+  </div>
+
+
+  <section class="sec">
+    <div class="container-md">
+      <div class="sec-title"><div class="accent-bar accent-red"></div><h2>Effetti psicologici sulle vittime</h2></div>
+      <p class="mb-8" style="color:var(--text-3);line-height:1.7;">La ricerca scientifica documenta chiaramente i danni psicologici causati dall'esposizione ripetuta al linguaggio d'odio:</p>
+
+
+      <div class="effect-list">
+        <div class="effect-item"><div class="effect-dot"></div><div><h3>Ansia e depressione</h3><p>Le vittime di hate speech online mostrano tassi più elevati di disturbi d'ansia e depressione rispetto alla media.</p></div></div>
+        <div class="effect-item"><div class="effect-dot"></div><div><h3>PTSD e trauma</h3><p>Episodi ripetuti o particolarmente gravi possono causare sintomi simili al disturbo da stress post-traumatico.</p></div></div>
+        <div class="effect-item"><div class="effect-dot"></div><div><h3>Bassa autostima</h3><p>Il bombardamento di messaggi negativi sulla propria identità erode progressivamente la fiducia in sé.</p></div></div>
+        <div class="effect-item"><div class="effect-dot"></div><div><h3>Isolamento sociale</h3><p>Molte vittime si ritirano dalle interazioni online e offline per evitare ulteriori attacchi.</p></div></div>
+        <div class="effect-item"><div class="effect-dot"></div><div><h3>Autocensura</h3><p>La paura di essere attaccati porta a non esprimere le proprie opinioni, danneggiando la partecipazione civica.</p></div></div>
+        <div class="effect-item"><div class="effect-dot"></div><div><h3>Ideazione suicidaria</h3><p>Nei casi più gravi, in particolare tra adolescenti, l'hate speech può contribuire a pensieri suicidari.</p></div></div>
+      </div>
+
+
+      <div class="amber-quote">
+        <p>"Le parole non sono mai innocue. Quando un'intera identità viene attaccata, la persona interiorizza quel messaggio e lo porta con sé."</p>
+        <cite>— Ricerca psicologica sull'impatto della discriminazione online</cite>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Effetti sociali -->
+  <section class="sec-dark">
+    <div class="container-lg">
+      <div class="sec-title"><div class="accent-bar accent-amber"></div><h2>Conseguenze sociali e politiche</h2></div>
+      <p class="mb-10" style="color:var(--text-3);max-width:560px;">L'hate speech non colpisce solo le singole vittime: erode il tessuto democratico e sociale di un'intera comunità.</p>
+      <div class="social-grid">
+        <div class="social-card"><div class="icon">🏘️</div><h3>Polarizzazione sociale</h3><p>Il linguaggio d'odio alimenta la divisione tra gruppi, creando echo chambers e rendendo difficile il dialogo costruttivo.</p></div>
+        <div class="social-card"><div class="icon">🗳️</div><h3>Danno alla democrazia</h3><p>L'hate speech scoraggia la partecipazione politica dei gruppi marginalizzati, impoverendo il dibattito pubblico.</p></div>
+        <div class="social-card"><div class="icon">📉</div><h3>Impatto economico</h3><p>Le vittime spesso riducono la loro produttività lavorativa o abbandonano carriere online per sfuggire agli attacchi.</p></div>
+        <div class="social-card"><div class="icon">🔥</div><h3>Escalation verso violenza</h3><p>Storicamente, il linguaggio d'odio normalizzato ha preceduto atti di violenza di massa e genocidi.</p></div>
+      </div>
+
+
+      <div class="history-box">
+        <h3>⚠️ L'hate speech come precursore della violenza</h3>
+        <p>Gli storici e i sociologi hanno documentato come, nei casi più gravi, la normalizzazione del linguaggio d'odio abbia preceduto atti di violenza di massa:</p>
+        <ul>
+          <li><strong>1930s</strong><span>La propaganda antisemita in Germania ha preceduto e facilitato l'Olocausto, disumanizzando sistematicamente la popolazione ebraica.</span></li>
+          <li><strong>1994</strong><span>Radio Mille Collines in Ruanda ha trasmesso propaganda che chiamava i Tutsi "scarafaggi" nei mesi precedenti il genocidio.</span></li>
+          <li><strong>Oggi</strong><span>Ricercatori monitorano come l'hate speech online preceda spesso attacchi fisici a gruppi minoritari.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Quadro legale -->
+  <section class="sec">
+    <div class="container-md">
+      <div class="sec-title"><div class="accent-bar accent-blue"></div><h2>Il quadro legale</h2></div>
+      <p class="mb-10" style="color:var(--text-3);line-height:1.7;">Molti paesi hanno leggi specifiche contro l'hate speech. Conoscerle è importante sia per le vittime che per capire i confini della libertà di espressione.</p>
+      <div class="legal-list">
+        <div class="legal-card">
+          <div class="legal-card-header">
+            <div class="legal-card-country"><span class="flag">🇮🇹</span><h3>Italia</h3></div>
+            <span class="status-green">Attiva</span>
+          </div>
+          <p class="law">Legge Mancino (1993) — Legge Zan (dibattito 2021)</p>
+          <p>La Legge Mancino punisce la propaganda, l'incitamento e l'istigazione basati su razzismo e xenofobia con pene fino a 3 anni.</p>
+        </div>
+        <div class="legal-card">
+          <div class="legal-card-header">
+            <div class="legal-card-country"><span class="flag">🇪🇺</span><h3>Unione Europea</h3></div>
+            <span class="status-blue">In vigore dal 2024</span>
+          </div>
+          <p class="law">Digital Services Act (DSA) — 2022</p>
+          <p>Obbliga le grandi piattaforme a rimuovere contenuti illegali, incluso l'hate speech, con sanzioni fino al 6% del fatturato globale.</p>
+        </div>
+        <div class="legal-card">
+          <div class="legal-card-header">
+            <div class="legal-card-country"><span class="flag">🇩🇪</span><h3>Germania</h3></div>
+            <span class="status-green">Attiva</span>
+          </div>
+          <p class="law">NetzDG (2017)</p>
+          <p>Una delle leggi più severe: le piattaforme devono rimuovere contenuti illegali entro 24-48 ore o affrontare multa fino a 50 milioni.</p>
+        </div>
+        <div class="legal-card">
+          <div class="legal-card-header">
+            <div class="legal-card-country"><span class="flag">🇫🇷</span><h3>Francia</h3></div>
+            <span class="status-amber">Parziale</span>
+          </div>
+          <p class="law">Legge Avia (2020)</p>
+          <p>Richiede la rimozione di contenuti d'odio entro 24 ore. Parte della legge è stata dichiarata incostituzionale.</p>
+        </div>
+      </div>
+
+
+      <div class="page-nav">
+        <a href="#cose"       class="btn btn-outline">← Cos'è l'hate speech</a>
+        <a href="#combattere" class="btn btn-green">Come combatterlo →</a>
+      </div>
+    </div>
+  </section>
+
+
+</div><!-- /impatto -->
+
+
+
+
+<!-- ================================================================
+     COME COMBATTERLO
+     ================================================================ -->
+<div id="combattere" class="page">
+
+
+  <div class="page-header green-tint">
+    <div class="container-md">
+      <a href="#home" class="back-link">← Torna alla home</a>
+      <span class="badge badge-green">Azione</span>
+      <h1>Come Combattere l'Hate Speech</h1>
+      <p>Non dobbiamo accettare passivamente il linguaggio d'odio. Esistono strategie concrete per individui, comunità e istituzioni. Ogni azione conta, anche la più piccola.</p>
+    </div>
+  </div>
+
+
+  <!-- Azioni individuali -->
+  <section class="sec">
+    <div class="container-lg">
+      <div class="sec-title"><div class="accent-bar accent-green"></div><h2>Cosa puoi fare tu</h2></div>
+      <p class="mb-10" style="color:var(--text-3);max-width:560px;">Azioni che ognuno di noi può adottare nella vita quotidiana per contrastare il linguaggio d'odio.</p>
+      <div class="action-grid">
+        <div class="action-card c-blue">  <div class="action-step">01</div><h3>Riconosci l'hate speech</h3>      <p>Impara a distinguere il linguaggio d'odio dal disaccordo legittimo. La consapevolezza è il primo passo.</p></div>
+        <div class="action-card c-amber"> <div class="action-step">02</div><h3>Non condividere, non amplificare</h3><p>Ogni condivisione, anche critica, aumenta la visibilità dei contenuti d'odio. Meglio non interagire.</p></div>
+        <div class="action-card c-green"> <div class="action-step">03</div><h3>Segnala alle piattaforme</h3>      <p>Usa i sistemi di segnalazione di ogni piattaforma. Molte segnalazioni sullo stesso contenuto aumentano le probabilità di rimozione.</p></div>
+        <div class="action-card c-purple"><div class="action-step">04</div><h3>Supporta le vittime</h3>          <p>Esprimi solidarietà pubblicamente alle vittime. Stare in silenzio può essere interpretato come acquiescenza.</p></div>
+        <div class="action-card c-red">   <div class="action-step">05</div><h3>Pratica il counter-speech</h3>    <p>Rispondi con dati, argomenti e umanizzazione. Il counter-speech efficace non attacca ma corregge narrativi.</p></div>
+        <div class="action-card c-teal">  <div class="action-step">06</div><h3>Cura il tuo benessere</h3>        <p>Combattere l'odio online è estenuante. Stabilisci limiti sani, prenditi pause e chiedi supporto quando necessario.</p></div>
+      </div>
+
+
+      <!-- Counter-speech -->
+      <div class="counter-box">
+        <h3>Il Counter-Speech: rispondere all'odio</h3>
+        <p>Il counter-speech è rispondere all'hate speech con argomenti contrari. Fatto bene, è uno degli strumenti più efficaci.</p>
+        <div class="counter-tip"><h4>Umanizza la vittima</h4><p>Invece di "sei sbagliato", prova: "Questa persona è un essere umano che merita rispetto, ecco perché..."</p></div>
+        <div class="counter-tip"><h4>Usa i fatti</h4><p>Contro gli stereotipi, cita dati reali da fonti affidabili senza essere aggressivo.</p></div>
+        <div class="counter-tip"><h4>Fai domande</h4><p>"Su cosa basi questa affermazione?" porta spesso l'altro a riflettere senza sentirsi attaccato.</p></div>
+        <div class="counter-tip"><h4>Coinvolgi altri</h4><p>Non confrontarti da solo: affronta la questione in privato con l'autore o coinvolgi moderatori.</p></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Segnalare alle piattaforme -->
+  <section class="sec-dark">
+    <div class="container-lg">
+      <div class="sec-title"><div class="accent-bar accent-blue"></div><h2>Come segnalare alle piattaforme</h2></div>
+      <p class="mb-10" style="color:var(--text-3);max-width:560px;">Ogni piattaforma ha un sistema di segnalazione. Usarlo è semplice e può portare alla rimozione dei contenuti dannosi.</p>
+      <div class="platform-report-grid">
+        <div class="platform-report-card">
+          <div class="phead"><div class="icon">📘</div><h3>Facebook / Instagram</h3></div>
+          <ol>
+            <li><span class="num">1.</span>Clicca i tre puntini sul post</li>
+            <li><span class="num">2.</span>Seleziona "Segnala"</li>
+            <li><span class="num">3.</span>Scegli "Linguaggio d'odio"</li>
+            <li><span class="num">4.</span>Specifica la categoria (razza, religione, ecc.)</li>
+          </ol>
+        </div>
+        <div class="platform-report-card">
+          <div class="phead"><div class="icon">🐦</div><h3>X (Twitter)</h3></div>
+          <ol>
+            <li><span class="num">1.</span>Clicca i tre puntini sul tweet</li>
+            <li><span class="num">2.</span>Seleziona "Segnala Tweet"</li>
+            <li><span class="num">3.</span>Scegli "Contenuto d'odio"</li>
+            <li><span class="num">4.</span>Indica il tipo di odio e invia</li>
+          </ol>
+        </div>
+        <div class="platform-report-card">
+          <div class="phead"><div class="icon">🎵</div><h3>TikTok</h3></div>
+          <ol>
+            <li><span class="num">1.</span>Tieni premuto sul video</li>
+            <li><span class="num">2.</span>Seleziona "Segnala"</li>
+            <li><span class="num">3.</span>Scegli "Incitamento all'odio"</li>
+            <li><span class="num">4.</span>Aggiungi dettagli se richiesto</li>
+          </ol>
+        </div>
+        <div class="platform-report-card">
+          <div class="phead"><div class="icon">▶️</div><h3>YouTube</h3></div>
+          <ol>
+            <li><span class="num">1.</span>Clicca i tre puntini sotto il video</li>
+            <li><span class="num">2.</span>Seleziona "Segnala"</li>
+            <li><span class="num">3.</span>Scegli "Contenuto di odio o discriminazione"</li>
+            <li><span class="num">4.</span>Invia la segnalazione</li>
+          </ol>
+        </div>
+      </div>
+      <div class="tip-box">
+        <p class="title">💡 Conserva sempre le prove</p>
+        <p>Prima di segnalare o bloccare, fai uno screenshot del contenuto con data e ora visibili. Potrebbe servirti per sporgere denuncia alle autorità o per documentare un pattern di comportamento.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Ruolo delle istituzioni -->
+  <section class="sec">
+    <div class="container-md">
+      <div class="sec-title"><div class="accent-bar accent-purple"></div><h2>Il ruolo delle istituzioni</h2></div>
+      <p class="mb-10" style="color:var(--text-3);">La lotta all'hate speech richiede un approccio sistemico. Ecco come diversi attori contribuiscono.</p>
+      <div class="inst-list">
+        <div class="inst-card">
+          <div class="inst-head"><div class="icon">🏫</div><h3>Scuole e università</h3></div>
+          <ul>
+            <li><span class="check">✓</span>Programmi di educazione all'empatia e al pensiero critico</li>
+            <li><span class="check">✓</span>Protocolli chiari per gestire incidenti di hate speech</li>
+            <li><span class="check">✓</span>Formazione degli insegnanti sul riconoscimento</li>
+          </ul>
+        </div>
+        <div class="inst-card">
+          <div class="inst-head"><div class="icon">💻</div><h3>Aziende tech</h3></div>
+          <ul>
+            <li><span class="check">✓</span>Moderazione proattiva con AI e team umani</li>
+            <li><span class="check">✓</span>Policy chiare e trasparenti sui contenuti vietati</li>
+            <li><span class="check">✓</span>Strumenti di segnalazione accessibili e rapidi</li>
+          </ul>
+        </div>
+        <div class="inst-card">
+          <div class="inst-head"><div class="icon">🏛️</div><h3>Governi e istituzioni</h3></div>
+          <ul>
+            <li><span class="check">✓</span>Legislazione efficace senza comprimere libertà di espressione</li>
+            <li><span class="check">✓</span>Finanziamento di programmi di prevenzione</li>
+            <li><span class="check">✓</span>Cooperazione internazionale per contenuti transfrontalieri</li>
+          </ul>
+        </div>
+        <div class="inst-card">
+          <div class="inst-head"><div class="icon">📰</div><h3>Media e giornalisti</h3></div>
+          <ul>
+            <li><span class="check">✓</span>Non amplificare contenuti d'odio senza contestualizzarli</li>
+            <li><span class="check">✓</span>Coprire le vittime con rispetto e centralità</li>
+            <li><span class="check">✓</span>Usare linguaggio non stigmatizzante nei titoli</li>
+          </ul>
+        </div>
+      </div>
+
+
+      <div class="page-nav">
+        <a href="#impatto" class="btn btn-outline">← L'impatto</a>
+        <a href="#risorse" class="btn btn-red">Risorse e aiuto →</a>
+      </div>
+    </div>
+  </section>
+
+
+</div><!-- /combattere -->
+
+
+
+
+<!-- ================================================================
+     RISORSE E AIUTO
+     ================================================================ -->
+<div id="risorse" class="page">
+
+
+  <div class="page-header red-tint">
+    <div class="container-md">
+      <a href="#home" class="back-link">← Torna alla home</a>
+      <span class="badge badge-red">Supporto</span>
+      <h1>Risorse e Aiuto</h1>
+      <p>Se sei vittima di hate speech, non devi affrontarlo da solo. Questa pagina raccoglie numeri di aiuto, enti di segnalazione e organizzazioni a cui puoi rivolgerti.</p>
+    </div>
+  </div>
+
+
+  <!-- Numeri di supporto -->
+  <section class="sec">
+    <div class="container-md">
+      <div class="sec-title"><div class="accent-bar accent-red"></div><h2>Hai bisogno di parlare con qualcuno?</h2></div>
+      <p class="mb-8" style="color:var(--text-3);">Se sei in difficoltà emotiva, questi servizi offrono ascolto e supporto gratuito:</p>
+      <div class="emergency-grid">
+        <div class="emergency-card e-red">
+          <div class="ehead"><h3>Telefono Amico</h3><span class="etype">Supporto psicologico</span></div>
+          <div class="number">02 2327 2327</div>
+          <p class="desc">Supporto emotivo telefonico, disponibile tutti i giorni</p>
+          <p class="avail">📅 Tutti i giorni</p>
+        </div>
+        <div class="emergency-card e-blue">
+          <div class="ehead"><h3>Telefono Azzurro</h3><span class="etype">Minori</span></div>
+          <div class="number">19696</div>
+          <p class="desc">Aiuto per bambini e adolescenti in difficoltà</p>
+          <p class="avail">📅 24/7</p>
+        </div>
+        <div class="emergency-card e-pink">
+          <div class="ehead"><h3>Telefono Rosa</h3><span class="etype">Donne</span></div>
+          <div class="number">06 3751 4286</div>
+          <p class="desc">Supporto per donne vittime di violenza e discriminazione</p>
+          <p class="avail">📅 Lun-Ven 9-17</p>
+        </div>
+        <div class="emergency-card e-purple">
+          <div class="ehead"><h3>Gay Help Line</h3><span class="etype">LGBTQ+</span></div>
+          <div class="number">800 713 713</div>
+          <p class="desc">Supporto per persone LGBTQ+ vittime di discriminazione</p>
+          <p class="avail">📅 Lun-Ven 18-22</p>
+        </div>
+      </div>
+
+
+      <div class="danger-box">
+        <p class="title">🚨 In caso di pericolo immediato</p>
+        <p>Se sei in pericolo immediato o ti trovi in una situazione di emergenza, chiama il <strong>112</strong> (numero unico di emergenza europeo).</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Dove segnalare -->
+  <section class="sec-dark">
+    <div class="container-md">
+      <div class="sec-title"><div class="accent-bar accent-blue"></div><h2>Come segnalare alle autorità</h2></div>
+      <p class="mb-10" style="color:var(--text-3);">Per hate speech grave, minacce o contenuti che violano la legge, puoi rivolgerti a questi enti ufficiali:</p>
+      <div class="report-list">
+        <div class="report-card">
+          <div class="icon">👮</div>
+          <div>
+            <h3>Polizia Postale</h3>
+            <p>Per hate speech grave, minacce o contenuti illegali, puoi sporgere denuncia alla Polizia Postale, specializzata in crimini informatici.</p>
+            <span class="link">commissariatodips.it</span>
+          </div>
+        </div>
+        <div class="report-card">
+          <div class="icon">⚖️</div>
+          <div>
+            <h3>UNAR — Ufficio Nazionale Antidiscriminazioni</h3>
+            <p>Puoi segnalare episodi di discriminazione razziale, etnica, religiosa e altre forme all'UNAR tramite il sito ufficiale.</p>
+            <span class="link">unar.it</span>
+          </div>
+        </div>
+        <div class="report-card">
+          <div class="icon">🔍</div>
+          <div>
+            <h3>OSCAD — Osservatorio per la Sicurezza Contro gli Atti Discriminatori</h3>
+            <p>Organismo interforze che raccoglie segnalazioni di crimini d'odio per monitorare il fenomeno e intervenire.</p>
+            <span class="link">oscad.it</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Organizzazioni -->
+  <section class="sec">
+    <div class="container-md">
+      <div class="sec-title"><div class="accent-bar accent-green"></div><h2>Organizzazioni e associazioni</h2></div>
+      <p class="mb-8" style="color:var(--text-3);">Enti che lavorano per contrastare la discriminazione e l'hate speech in Italia:</p>
+      <div class="org-grid">
+        <div class="org-card"><div class="org-head"><span class="icon">🕯️</span><h3>Amnesty International Italia</h3></div><p>Diritti umani globali, campagne contro odio e discriminazione</p><span class="site">🌐 amnesty.it</span></div>
+        <div class="org-card"><div class="org-head"><span class="icon">🏳️‍🌈</span><h3>Arcigay</h3></div><p>Associazione LGBTQ+ — supporto e advocacy contro l'omotransfobia</p><span class="site">🌐 arcigay.it</span></div>
+        <div class="org-card"><div class="org-head"><span class="icon">🤝</span><h3>ARCI</h3></div><p>Associazione culturale e sociale impegnata contro il razzismo</p><span class="site">🌐 arci.it</span></div>
+        <div class="org-card"><div class="org-head"><span class="icon">📊</span><h3>Lunaria</h3></div><p>Osservatorio italiano sull'hate speech e i crimini d'odio</p><span class="site">🌐 cronachediordinariorazzismo.org</span></div>
+        <div class="org-card"><div class="org-head"><span class="icon">💬</span><h3>Parole O_Stili</h3></div><p>Progetto per un linguaggio non ostile online — manifesto e formazione</p><span class="site">🌐 paroleostili.it</span></div>
+        <div class="org-card"><div class="org-head"><span class="icon">📡</span><h3>Vox – Osservatorio Italiano sui Diritti</h3></div><p>Monitoraggio dell'hate speech sui social media italiani</p><span class="site">🌐 voxdiritti.it</span></div>
+      </div>
+
+
+      <!-- Self-care -->
+      <div style="padding-top:3rem;border-top:1px solid var(--border);margin-top:1rem;">
+        <div class="sec-title"><div class="accent-bar accent-amber"></div><h2>Prendersi cura di sé</h2></div>
+        <p class="mb-8" style="color:var(--text-3);">Essere esposti all'hate speech può essere emotivamente logorante. Ecco come proteggerti:</p>
+        <div class="selfcare-grid">
+          <div class="selfcare-card"><div class="icon">🔕</div><h3>Limita l'esposizione</h3><p>Non è necessario leggere ogni risposta ostile. Usa i filtri delle parole chiave e silenzia gli account aggressivi.</p></div>
+          <div class="selfcare-card"><div class="icon">🧘</div><h3>Prenditi delle pause</h3><p>Allontanarsi dai social media per alcune ore o giorni è una scelta sana, non una sconfitta.</p></div>
+          <div class="selfcare-card"><div class="icon">🤗</div><h3>Parla con qualcuno</h3><p>Condividi l'esperienza con un amico fidato, un familiare o un professionista della salute mentale.</p></div>
+          <div class="selfcare-card"><div class="icon">📝</div><h3>Documenta tutto</h3><p>Conserva screenshot con data e ora. Ti serviranno se decidi di sporgere denuncia.</p></div>
+          <div class="selfcare-card"><div class="icon">🔒</div><h3>Proteggi il tuo account</h3><p>Attiva l'autenticazione a due fattori, controlla le impostazioni sulla privacy e chi può commentare i tuoi post.</p></div>
+          <div class="selfcare-card"><div class="icon">💪</div><h3>Non sentirti in colpa</h3><p>L'hate speech è responsabilità di chi lo produce, non di chi lo riceve. Non sei tu il problema.</p></div>
+        </div>
+      </div>
+
+
+      <!-- Share box -->
+      <div class="share-box">
+        <h3>Hai trovato questa risorsa utile?</h3>
+        <p>Condividila con chi potrebbe averne bisogno. Ogni persona informata è un alleato in più nella lotta all'hate speech.</p>
+        <div class="share-btns">
+          <a href="#cose">Cos'è l'hate speech</a>
+          <a href="#impatto">Il suo impatto</a>
+          <a href="#combattere">Come combatterlo</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+</div><!-- /risorse -->
+
+
+
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="logo">
+        <div class="nav-logo-box">HS</div>
+        Stop<span style="color:var(--red)">HateSpeech</span>
+      </div>
+      <p>Una risorsa educativa per comprendere, prevenire e combattere l'hate speech online e offline.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Navigazione</h4>
+      <ul>
+        <li><a href="#cose">Cos'è l'Hate Speech</a></li>
+        <li><a href="#impatto">Impatto e Conseguenze</a></li>
+        <li><a href="#combattere">Come Combatterlo</a></li>
+        <li><a href="#risorse">Risorse e Aiuto</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Segnalazioni</h4>
+      <p>Se sei vittima di hate speech, puoi segnalarlo alle autorità competenti o chiedere supporto.</p>
+      <a href="#risorse" class="btn btn-red" style="font-size:.875rem;padding:.5rem 1.25rem;">Chiedi Aiuto</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2026 StopHateSpeech — Sito a scopo educativo e informativo
+  </div>
+</footer>
+
+
+</body>
+</html>

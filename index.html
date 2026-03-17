@@ -490,6 +490,14 @@ footer{padding:18px; text-align:center; color:var(--muted)}
   .personQuote{ max-width:none; }
 }
 
+.embedFrame{
+  width:100%;
+  min-height:75vh;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#0a0f1f;
+}
+
   </style>
 </head>
 
@@ -510,6 +518,7 @@ footer{padding:18px; text-align:center; color:var(--muted)}
   <button class="tab" data-target="difendersi">Come difendersi</button>
   <button class="tab" data-target="galleria">Galleria</button>
   <button class="tab" data-target="scenario">Scenario</button>
+  <button class="tab" data-target="sito-hate">Sito Hate Speech</button>
   <button class="tab" data-target="cyberwar">Cyber War</button>
   <button class="tab" data-target="ai">AI</button>
   <button class="tab" data-target="quiz">Quiz</button>
@@ -543,7 +552,6 @@ footer{padding:18px; text-align:center; color:var(--muted)}
     <span class="personName">THOMAS PEREGO</span>
   </span>
   </span>
-</span>
 
   <span class="personChip">
     <img class="avatar" src="img/walid-zernack.jpg" alt="WALID ZERNACK">
@@ -577,6 +585,7 @@ footer{padding:18px; text-align:center; color:var(--muted)}
           <div class="btnrow">
             <button class="btn primary" data-jump="difendersi"><span class="dot"></span>Vai a "Come difendersi"</button>
             <button class="btn info" data-jump="galleria"><span class="dot"></span>Apri la galleria</button>
+            <button class="btn" data-jump="sito-hate"><span class="dot"></span>Apri sito Hate Speech</button>
             <button class="btn" onclick="window.open('Cyber Warfare/index.html','_blank')"><span class="dot"></span>Apri altro sito</button>
           </div>
 
@@ -756,6 +765,21 @@ footer{padding:18px; text-align:center; color:var(--muted)}
             Puoi riscrivere lo scenario con un caso scelto dalla classe (senza nomi reali).
           </p>
         </aside>
+      </div>
+    </section>
+
+    <!-- SITO HATE SPEECH -->
+    <section class="page" id="sito-hate">
+      <div class="grid" style="grid-template-columns:1fr">
+        <div class="card reveal">
+          <span class="badge">Sezione esterna</span>
+          <h2 class="title">Contenuto da sito.html</h2>
+          <p class="muted">
+            Questa sezione carica direttamente <code>sito.html</code> all'interno di <code>index.html</code>.
+          </p>
+          <hr />
+          <iframe class="embedFrame" src="sito.html" title="Sito Hate Speech"></iframe>
+        </div>
       </div>
     </section>
     <!-- CYBER WAR -->
@@ -1551,11 +1575,6 @@ footer{padding:18px; text-align:center; color:var(--muted)}
   </script>
 </body>
 </html> 
-
-
-
-
-
 
 
 
